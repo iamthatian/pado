@@ -1,4 +1,4 @@
-module github.com/duckonomy/pd
+module github.com/duckonomy/pp
 
 go 1.23.4
 

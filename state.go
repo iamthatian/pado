@@ -19,7 +19,7 @@ type ProjectStateActions interface {
 	Update()
 }
 
-const STATE_FILE = "./pdstate"
+const STATE_FILE = "./ppstate"
 
 func readState() (ProjectState, error) {
 	var ps ProjectState
