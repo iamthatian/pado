@@ -53,7 +53,7 @@ func main() {
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					fmt.Println("adding test: ", cmd.Args().First())
 					// normalizePath(cmd.Args().First())
-					err := Add("/Users/ianpark/awesome/")
+					err := Add("/Users/ianpark/Development/")
 					if err != nil {
 						fmt.Println("awesome")
 						log.Fatal(err)
