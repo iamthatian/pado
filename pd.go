@@ -1,3 +1,4 @@
+// Next step: Priority
 package main
 
 import (
@@ -32,7 +33,6 @@ func main() {
 				Aliases: []string{"a"},
 				Usage:   "add project",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					fmt.Println("Adding...", cmd.Args().First())
 					err := Add(cmd.Args().Get(1))
 					if err != nil {
 						log.Fatal(err)
@@ -43,9 +43,8 @@ func main() {
 			{
 				Name:    "remove",
 				Aliases: []string{"a"},
-				Usage:   "add project",
+				Usage:   "remove project",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					fmt.Println("Removing...", cmd.Args().First())
 					err := Remove(cmd.Args().Get(1))
 					if err != nil {
 						log.Fatal(err)
@@ -57,11 +56,8 @@ func main() {
 			{
 				Name:    "update",
 				Aliases: []string{"a"},
-				Usage:   "add project",
+				Usage:   "update project",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					fmt.Println("removing test: ", cmd.Args().First())
-					// normalizePath(cmd.Args().First())
-					// addProject()
 					err := Update(cmd.Args().Get(1), "name", "Awesome")
 					if err != nil {
 						log.Fatal(err)
