@@ -1,6 +1,3 @@
-// this should define every path operation
-// walking up/normalizing etc
-
 package main
 
 import (

@@ -1,4 +1,3 @@
-// merge this with projects? confusing filename?
 package main
 
 import (
@@ -11,18 +10,10 @@ type Project struct {
 	Path        string
 	Kind        string
 	Description string
+	Priority    int
 }
 
-// And then, ruby path python git path etcetc (based on matchers)
 type ProjectActions interface {
-	Name()
-	Path()
-	Kind()
-	Description()
-	// Matchers() []string
-	// Update()
-	// Rename()
-	// ChangeRename()
 	Compile()
 }
 
@@ -119,8 +110,3 @@ func hasProjectFiles(fileList []os.DirEntry, patterns []string) string {
 	}
 	return ""
 }
-
-// TODO: I should just get the kind on matching type
-// Given a matcher item, return the
-// func parseLanguage(matcher string) string {
-// }

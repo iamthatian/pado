@@ -1,33 +1,3 @@
-// replacement for projects.go
-// this should be everything related to abstract db
-// sanitize directory/path
-// Need information on current directory and/or given directory
-// either empty string or string
-// kv store search based on project name or path? duplicate data?
-// or more complex? single data but then filtering based on path/lang/name
-// do not allow duplicate path/lang/name
-// migration support with version update and
-// Ok KV store (based off path) O(1) and other queries do O(n)
-// search (because most common usecase would be getting project state)
-// and n is usually going to be small
-// Other option is O(log n) for every operation and increased complexity
-// fzf query based on stuff
-// input custom db filler arguments
-// project db Design
-// full text search
-// KV store with (pathname : ProjectData)
-// generate index (seperate)? of words after looping through everything and then serialize
-// OK man at this point a library is much better idk man
-// Just implement basic feature first and then worry about it after community support
-// ProjectData:
-//
-//	{
-//	  Name
-//	  Description
-//
-// }
-
-// Consider blacklist (ENV Variable: PD_BLACKLIST)
 package main
 
 import (
