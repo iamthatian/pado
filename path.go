@@ -14,9 +14,8 @@ type ProjectPath interface {
 	Get()
 }
 
-func normalizePath(path string) (string, error) {
+func Wd(path string) (string, error) {
 	var err error
-
 	if path == "" {
 		path, err = os.Getwd()
 		if err != nil {
@@ -24,15 +23,24 @@ func normalizePath(path string) (string, error) {
 		}
 	}
 
+	return path, nil
+}
+
+func NormalizePath(path string) (string, error) {
+	wd, err := Wd(path)
+	if err != nil {
+		return "", err
+	}
+
 	var fullPath string
-	if !filepath.IsAbs(path) {
-		absPath, err := filepath.Abs(path)
+	if !filepath.IsAbs(wd) {
+		absPath, err := filepath.Abs(wd)
 		if err != nil {
 			return "", err
 		}
 		fullPath = absPath
 	} else {
-		fullPath = filepath.Clean(path)
+		fullPath = filepath.Clean(wd)
 	}
 
 	// TODO: Catch all error for now go deeper

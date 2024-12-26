@@ -88,7 +88,10 @@ func getProjectFiles() []string {
 
 // TODO: return error
 func searchAncestors(startPath string, matchList []string) string {
-	cwd := startPath
+	cwd, err := NormalizePath(startPath)
+	if err != nil {
+		return ""
+	}
 	// TODO: Should loop for a fixed range just in case?
 	for cwd != "/" {
 		files, err := os.ReadDir(cwd)
