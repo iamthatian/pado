@@ -19,13 +19,13 @@ func main() {
 				Aliases: []string{"l"},
 				Usage:   "list projects",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					p, err := ListProject()
-					if err != nil {
+					var ps ProjectState
+					if err := ps.LoadState(); err != nil {
 						log.Fatal(err)
 					}
 
-					for _, i := range p {
-						fmt.Println(i.Path)
+					for _, project := range ps.ListProjects() {
+						fmt.Println(project.Path)
 					}
 					return nil
 				},
@@ -35,8 +35,11 @@ func main() {
 				Aliases: []string{"a"},
 				Usage:   "add project",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					err := AddProject(cmd.Args().Get(0))
-					if err != nil {
+					var ps ProjectState
+					if err := ps.LoadState(); err != nil {
+						log.Fatal(err)
+					}
+					if err := ps.AddProject(cmd.Args().Get(0)); err != nil {
 						log.Fatal(err)
 					}
 					return nil
@@ -44,24 +47,29 @@ func main() {
 			},
 			{
 				Name:    "remove",
-				Aliases: []string{"a"},
+				Aliases: []string{"r"},
 				Usage:   "remove project",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					err := RemoveProject(cmd.Args().Get(0))
-					if err != nil {
+					var ps ProjectState
+					if err := ps.LoadState(); err != nil {
+						log.Fatal(err)
+					}
+					if err := ps.RemoveProject(cmd.Args().Get(0)); err != nil {
 						log.Fatal(err)
 					}
 					return nil
 				},
 			},
-
 			{
 				Name:    "update",
-				Aliases: []string{"a"},
+				Aliases: []string{"u"},
 				Usage:   "update project",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					err := UpdateProject(cmd.Args().Get(0), "name", "Awesome")
-					if err != nil {
+					var ps ProjectState
+					if err := ps.LoadState(); err != nil {
+						log.Fatal(err)
+					}
+					if err := ps.UpdateProject(cmd.Args().Get(0), "name", "Awesome"); err != nil {
 						log.Fatal(err)
 					}
 					return nil
@@ -69,15 +77,18 @@ func main() {
 			},
 			{
 				Name:    "blacklist",
-				Aliases: []string{"t"},
-				Usage:   "options for task templates",
+				Aliases: []string{"b"},
+				Usage:   "manage blacklist",
 				Commands: []*cli.Command{
 					{
 						Name:  "add",
-						Usage: "add blacklist",
+						Usage: "add to blacklist",
 						Action: func(ctx context.Context, cmd *cli.Command) error {
-							err := AddBlacklist(cmd.Args().Get(0))
-							if err != nil {
+							var ps ProjectState
+							if err := ps.LoadState(); err != nil {
+								log.Fatal(err)
+							}
+							if err := ps.ManageBlacklist(cmd.Args().Get(0), true); err != nil {
 								log.Fatal(err)
 							}
 							return nil
@@ -85,10 +96,13 @@ func main() {
 					},
 					{
 						Name:  "remove",
-						Usage: "remove blacklist",
+						Usage: "remove from blacklist",
 						Action: func(ctx context.Context, cmd *cli.Command) error {
-							err := RemoveBlacklist(cmd.Args().Get(0))
-							if err != nil {
+							var ps ProjectState
+							if err := ps.LoadState(); err != nil {
+								log.Fatal(err)
+							}
+							if err := ps.ManageBlacklist(cmd.Args().Get(0), false); err != nil {
 								log.Fatal(err)
 							}
 							return nil
@@ -98,13 +112,16 @@ func main() {
 						Name:  "show",
 						Usage: "show blacklist",
 						Action: func(ctx context.Context, cmd *cli.Command) error {
-							bl, err := ShowBlacklist()
+							var ps ProjectState
+							if err := ps.LoadState(); err != nil {
+								log.Fatal(err)
+							}
+							blacklist, err := ps.ShowBlacklist()
 							if err != nil {
 								log.Fatal(err)
 							}
-
-							for _, i := range bl {
-								fmt.Println(i)
+							for _, path := range blacklist {
+								fmt.Println(path)
 							}
 							return nil
 						},
@@ -113,25 +130,24 @@ func main() {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			var found string
-			pf := cmd.Args().Get(0)
+			var ps ProjectState
+			if err := ps.LoadState(); err != nil {
+				log.Fatal(err)
+			}
 
-			exists, err := ProjectExists(pf)
+			projectPath := cmd.Args().Get(0)
+			project, err := ps.GetProject(projectPath)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			if exists {
-				proj, err := GetProject(pf)
-				found = proj.Path
-				if err != nil {
+			if project.IsEmpty() {
+				if err := project.FindProject(projectPath, 100); err != nil {
 					log.Fatal(err)
 				}
-			} else {
-				found = searchAncestors(pf, getProjectFiles())
 			}
 
-			fmt.Println(found)
+			fmt.Println(project.Path)
 			return nil
 		},
 	}

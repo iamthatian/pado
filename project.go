@@ -5,21 +5,65 @@ import (
 	"path/filepath"
 )
 
+// Project struct represents a project with metadata.
 type Project struct {
 	Name        string
 	Path        string
 	Kind        string
 	Description string
-	CompileCmd  string
 	Priority    int
 }
 
-type ProjectActions interface {
-	Compile()
+// IsEmpty checks if the project is not initialized.
+func (p *Project) IsEmpty() bool {
+	return len(p.Path) == 0
 }
 
+// FindProject traverses directories to locate project-specific files.
+func (p *Project) FindProject(startPath string, maxDepth int) error {
+	currentPath, err := NormalizePath(startPath)
+	if err != nil {
+		return err
+	}
+
+	// currentPath := normalizedPath
+	depth := 0
+
+	for currentPath != "/" && depth <= maxDepth {
+		files, err := os.ReadDir(currentPath)
+		if err != nil {
+			return err
+		}
+
+		if matchedFile := matchProjectFiles(files, getProjectFiles()); matchedFile != "" {
+			p.Path = filepath.Clean(currentPath)
+			return nil
+		}
+
+		currentPath = filepath.Dir(currentPath)
+		depth++
+	}
+
+	p.Path = "/"
+
+	return nil
+}
+
+// matchProjectFiles checks if any file matches known project identifiers.
+func matchProjectFiles(fileList []os.DirEntry, patterns []string) string {
+	for _, pattern := range patterns {
+		for _, file := range fileList {
+			if file.Name() == pattern {
+				return filepath.Clean(file.Name())
+			}
+		}
+	}
+	return ""
+}
+
+// getProjectFiles returns a list of file patterns associated with projects.
 func getProjectFiles() []string {
-	projectFiles := []string{
+	return []string{
 		".git",
 		".gitignore",
 		"pyproject.toml",
@@ -75,39 +119,4 @@ func getProjectFiles() []string {
 		"configure.in",          // c/c++
 		"cscope.out",            // c
 	}
-	return projectFiles
-}
-
-// TODO: return error
-func searchAncestors(startPath string, matchList []string) string {
-	cwd, err := NormalizePath(startPath)
-	if err != nil {
-		return ""
-	}
-	// TODO: Should loop for a fixed range just in case?
-	for cwd != "/" {
-		files, err := os.ReadDir(cwd)
-		if err != nil {
-			return ""
-		}
-
-		if hasProjectFiles(files, matchList) != "" {
-			return filepath.Clean(cwd)
-		}
-
-		cwd = filepath.Dir(cwd)
-	}
-
-	return "/"
-}
-
-func hasProjectFiles(fileList []os.DirEntry, patterns []string) string {
-	for _, pattern := range patterns {
-		for _, file := range fileList {
-			if file.Name() == pattern {
-				return filepath.Clean(file.Name())
-			}
-		}
-	}
-	return ""
 }
