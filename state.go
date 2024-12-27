@@ -1,15 +1,20 @@
 package main
 
 import (
-	"compress/gzip"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"log"
 	"os"
+	"path"
+	"runtime"
+	"sort"
+	"strconv"
 )
 
 type ProjectState struct {
-	Projects map[string]Project
+	Projects  map[string]Project
+	Blacklist map[string]bool
 }
 
 type ProjectStateActions interface {
@@ -19,34 +24,59 @@ type ProjectStateActions interface {
 	Update()
 }
 
-const STATE_FILE = "./ppstate"
+// const STATE_FILE = "./state"
+
+// mkdir of state should be generated on install ig
+//
+//	err := os.MkdirAll(newpath, os.ModePerm)
+func stateFile() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	switch runtime.GOOS {
+	case "darwin":
+		pa := path.Join(home, "Library/Application Support/sp/sp.db")
+		return pa, nil
+	case "linux":
+		pa := path.Join(home, ".local/state/sp/sp.db")
+		return pa, nil
+	default:
+		return "", errors.New("OS not supported")
+	}
+}
 
 func readState() (ProjectState, error) {
 	var ps ProjectState
-	_, err := os.Stat(STATE_FILE)
+	sf, err := stateFile()
+	if err != nil {
+		return ps, err
+	}
+	_, err = os.Stat(sf)
 	if err != nil {
 		// NOTE: If doens't already exist, create empty object
 		if os.IsNotExist(err) {
-			ps = ProjectState{Projects: make(map[string]Project)}
+			ps = ProjectState{
+				Projects:  make(map[string]Project),
+				Blacklist: make(map[string]bool),
+			}
 			return ps, nil
 		} else {
 			return ps, err
 		}
 	}
 
-	fi, err := os.Open(STATE_FILE)
+	sf, err = stateFile()
+	if err != nil {
+		return ps, err
+	}
+	fi, err := os.Open(sf)
 	if err != nil {
 		return ps, err
 	}
 	defer fi.Close()
 
-	fz, err := gzip.NewReader(fi)
-	if err != nil {
-		return ps, err
-	}
-	defer fz.Close()
-
-	decoder := gob.NewDecoder(fz)
+	decoder := gob.NewDecoder(fi)
 	err = decoder.Decode(&ps)
 	if err != nil {
 		return ps, err
@@ -56,7 +86,11 @@ func readState() (ProjectState, error) {
 }
 
 func writeState(transform func() ProjectState) error {
-	fi, err := os.OpenFile(STATE_FILE, os.O_RDWR|os.O_CREATE, 0644)
+	sf, err := stateFile()
+	if err != nil {
+		return err
+	}
+	fi, err := os.OpenFile(sf, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
@@ -64,11 +98,7 @@ func writeState(transform func() ProjectState) error {
 
 	pd := transform()
 
-	fz := gzip.NewWriter(fi)
-	defer fz.Close()
-
-	// enc := gob.NewEncoder(&b)
-	enc := gob.NewEncoder(fz)
+	enc := gob.NewEncoder(fi)
 	if err := enc.Encode(pd); err != nil {
 		return err
 	}
@@ -76,7 +106,11 @@ func writeState(transform func() ProjectState) error {
 	return nil
 }
 
-func Get(path string) (Project, error) {
+// TODO: Update get
+// not very clean... abstract basic db ops and others (like hooks)
+// Get should just return Project not increment
+// (only increment on selection through list)
+func GetProject(path string) (Project, error) {
 	pd, err := readState()
 	var p Project
 	if err != nil {
@@ -88,13 +122,28 @@ func Get(path string) (Project, error) {
 	}
 	project, ok := pd.Projects[wd]
 	if ok {
+		// increment if exists
+		err = incrementProjectPriority(project)
+		if err != nil {
+			return p, err
+		}
 		return project, nil
 	}
 
 	return p, nil
 }
 
-func Exists(path string) (bool, error) {
+func incrementProjectPriority(p Project) error {
+	oldPriority := p.Priority
+
+	err := UpdateProject(p.Path, "Priority", strconv.Itoa(oldPriority+1))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ProjectExists(path string) (bool, error) {
 	pd, err := readState()
 	if err != nil {
 		return false, err
@@ -111,13 +160,30 @@ func Exists(path string) (bool, error) {
 	return false, nil
 }
 
-// this is get
-func List() (ProjectState, error) {
-	pd, err := readState()
-	return pd, err
+func sortProjectByPriority(p ProjectState) []Project {
+	projects := make([]Project, 0, len(p.Projects))
+
+	for _, v := range p.Projects {
+		// Blacklist filter
+		if !p.Blacklist[v.Path] {
+			projects = append(projects, v)
+		}
+	}
+
+	sort.SliceStable(projects, func(i, j int) bool {
+		return p.Projects[projects[i].Path].Priority > p.Projects[projects[j].Path].Priority
+	})
+
+	return projects
 }
 
-func Add(path string) error {
+func ListProject() ([]Project, error) {
+	pd, err := readState()
+	p := sortProjectByPriority(pd)
+	return p, err
+}
+
+func AddProject(path string) error {
 	pd, err := readState()
 	if err != nil {
 		return err
@@ -128,14 +194,17 @@ func Add(path string) error {
 		return err
 	}
 
-	if val, ok := pd.Projects[wd]; ok {
-		fmt.Println(val)
+	if pd.Blacklist[wd] {
+		return fmt.Errorf("path %v in blacklist", wd)
+	}
+
+	if _, ok := pd.Projects[wd]; ok {
 		return fmt.Errorf("project already exist %v", wd)
 	}
 
 	err = writeState(func() ProjectState {
 		project := Project{Name: getBase(wd), Path: wd, Kind: "c"}
-		pd.Projects[path] = project
+		pd.Projects[wd] = project
 		return pd
 	})
 	if err != nil {
@@ -145,7 +214,7 @@ func Add(path string) error {
 	return nil
 }
 
-func Remove(path string) error {
+func RemoveProject(path string) error {
 	pd, err := readState()
 	if err != nil {
 		return err
@@ -156,16 +225,88 @@ func Remove(path string) error {
 		return err
 	}
 
-	writeState(func() ProjectState {
+	err = writeState(func() ProjectState {
 		delete(pd.Projects, wd)
 		return pd
 	})
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func Update(path, key, value string) error {
-	pd, err := List()
+func ShowBlacklist() ([]string, error) {
+	var bl []string
+	bs, err := getBlacklist()
+	if err != nil {
+		return bl, err
+	}
+
+	for k, v := range bs {
+		if v {
+			bl = append(bl, k)
+		}
+	}
+	return bl, nil
+}
+
+// when would I need this though?
+func getBlacklist() (map[string]bool, error) {
+	pd, err := readState()
+	if err != nil {
+		return pd.Blacklist, err
+	}
+
+	return pd.Blacklist, nil
+}
+
+func RemoveBlacklist(path string) error {
+	pd, err := readState()
+	if err != nil {
+		return err
+	}
+
+	wd, err := NormalizePath(path)
+	if err != nil {
+		return err
+	}
+
+	err = writeState(func() ProjectState {
+		delete(pd.Blacklist, wd)
+		return pd
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func AddBlacklist(path string) error {
+	pd, err := readState()
+	if err != nil {
+		return err
+	}
+
+	wd, err := NormalizePath(path)
+	if err != nil {
+		return err
+	}
+
+	err = writeState(func() ProjectState {
+		pd.Blacklist[wd] = true
+		return pd
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateProject(path, key, value string) error {
+	pd, err := readState()
 	if err != nil {
 		return err
 	}
@@ -177,7 +318,7 @@ func Update(path, key, value string) error {
 
 	// TODO: utilize methods
 	// TODO: make this a pointer
-	writeState(func() ProjectState {
+	err = writeState(func() ProjectState {
 		p := pd.Projects[wd]
 		switch key {
 		case "Path":
@@ -189,13 +330,20 @@ func Update(path, key, value string) error {
 		case "Description":
 			p.Description = value
 		case "Priority":
-			p.Description = value
+			priority, err := strconv.Atoi(value)
+			if err != nil {
+				log.Fatal(err)
+			}
+			p.Priority = priority
 		default:
 			log.Fatalf("No such key %v in project", key)
 		}
 		pd.Projects[wd] = p
 		return pd
 	})
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

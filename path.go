@@ -6,11 +6,6 @@ import (
 	"path/filepath"
 )
 
-type ProjectPath interface {
-	ChangePath()
-	Get()
-}
-
 func Wd(path string) (string, error) {
 	var err error
 	if path == "" {

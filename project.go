@@ -10,6 +10,7 @@ type Project struct {
 	Path        string
 	Kind        string
 	Description string
+	CompileCmd  string
 	Priority    int
 }
 
