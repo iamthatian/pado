@@ -26,7 +26,6 @@ func (p *Project) FindProject(startPath string, maxDepth int) error {
 		return err
 	}
 
-	// currentPath := normalizedPath
 	depth := 0
 
 	for currentPath != "/" && depth <= maxDepth {

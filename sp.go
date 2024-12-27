@@ -9,7 +9,13 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+var ps ProjectState
+
 func main() {
+	if err := ps.LoadState(); err != nil {
+		log.Fatal(err)
+	}
+
 	cmd := &cli.Command{
 		Name:  "pd",
 		Usage: "project root finder",
@@ -19,11 +25,6 @@ func main() {
 				Aliases: []string{"l"},
 				Usage:   "list projects",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					var ps ProjectState
-					if err := ps.LoadState(); err != nil {
-						log.Fatal(err)
-					}
-
 					for _, project := range ps.ListProjects() {
 						fmt.Println(project.Path)
 					}
@@ -35,10 +36,6 @@ func main() {
 				Aliases: []string{"a"},
 				Usage:   "add project",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					var ps ProjectState
-					if err := ps.LoadState(); err != nil {
-						log.Fatal(err)
-					}
 					if err := ps.AddProject(cmd.Args().Get(0)); err != nil {
 						log.Fatal(err)
 					}
@@ -50,10 +47,6 @@ func main() {
 				Aliases: []string{"r"},
 				Usage:   "remove project",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					var ps ProjectState
-					if err := ps.LoadState(); err != nil {
-						log.Fatal(err)
-					}
 					if err := ps.RemoveProject(cmd.Args().Get(0)); err != nil {
 						log.Fatal(err)
 					}
@@ -65,10 +58,6 @@ func main() {
 				Aliases: []string{"u"},
 				Usage:   "update project",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					var ps ProjectState
-					if err := ps.LoadState(); err != nil {
-						log.Fatal(err)
-					}
 					if err := ps.UpdateProject(cmd.Args().Get(0), "name", "Awesome"); err != nil {
 						log.Fatal(err)
 					}
@@ -84,10 +73,6 @@ func main() {
 						Name:  "add",
 						Usage: "add to blacklist",
 						Action: func(ctx context.Context, cmd *cli.Command) error {
-							var ps ProjectState
-							if err := ps.LoadState(); err != nil {
-								log.Fatal(err)
-							}
 							if err := ps.ManageBlacklist(cmd.Args().Get(0), true); err != nil {
 								log.Fatal(err)
 							}
@@ -98,10 +83,6 @@ func main() {
 						Name:  "remove",
 						Usage: "remove from blacklist",
 						Action: func(ctx context.Context, cmd *cli.Command) error {
-							var ps ProjectState
-							if err := ps.LoadState(); err != nil {
-								log.Fatal(err)
-							}
 							if err := ps.ManageBlacklist(cmd.Args().Get(0), false); err != nil {
 								log.Fatal(err)
 							}
@@ -112,10 +93,6 @@ func main() {
 						Name:  "show",
 						Usage: "show blacklist",
 						Action: func(ctx context.Context, cmd *cli.Command) error {
-							var ps ProjectState
-							if err := ps.LoadState(); err != nil {
-								log.Fatal(err)
-							}
 							blacklist, err := ps.ShowBlacklist()
 							if err != nil {
 								log.Fatal(err)
@@ -130,11 +107,6 @@ func main() {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			var ps ProjectState
-			if err := ps.LoadState(); err != nil {
-				log.Fatal(err)
-			}
-
 			projectPath := cmd.Args().Get(0)
 			project, err := ps.GetProject(projectPath)
 			if err != nil {

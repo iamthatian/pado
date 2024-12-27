@@ -35,7 +35,6 @@ func NormalizePath(path string) (string, error) {
 		fullPath = filepath.Clean(wd)
 	}
 
-	// TODO: Catch all error for now go deeper
 	if stat, err := os.Stat(fullPath); err == nil {
 		if !stat.IsDir() {
 			fullPath = filepath.Dir(fullPath)
