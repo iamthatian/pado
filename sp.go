@@ -132,7 +132,7 @@ func main() {
 				}
 			}
 
-			fmt.Println(project)
+			fmt.Println(project.Path)
 			return nil
 		},
 	}
