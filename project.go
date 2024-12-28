@@ -20,13 +20,15 @@ func (p *Project) IsEmpty() bool {
 }
 
 // FindProject traverses directories to locate project-specific files.
-func (p *Project) FindProject(startPath string, maxDepth int) error {
+func (p *Project) FindProject(startPath string) error {
+	maxDepth := 100
+	depth := 0
 	currentPath, err := NormalizePath(startPath)
 	if err != nil {
 		return err
 	}
 
-	depth := 0
+	completePatterns := getCategorizedProjectFiles()
 
 	for currentPath != "/" && depth <= maxDepth {
 		files, err := os.ReadDir(currentPath)
@@ -34,88 +36,208 @@ func (p *Project) FindProject(startPath string, maxDepth int) error {
 			return err
 		}
 
-		if matchedFile := matchProjectFiles(files, getProjectFiles()); matchedFile != "" {
-			p.Path = filepath.Clean(currentPath)
-			return nil
+		// This is an unsorted map so might have to keep track of depth
+		// TODO: priority of projects (i.e. custom takes priority over project and lang takes priority project over git)
+		for category, patterns := range completePatterns {
+			if matched := matchProjectFiles(files, patterns); matched {
+				p.Path = filepath.Clean(currentPath)
+				p.Kind = category
+				return nil
+			}
 		}
-
 		currentPath = filepath.Dir(currentPath)
 		depth++
 	}
 
 	p.Path = "/"
-
+	p.Kind = ""
 	return nil
 }
 
-// matchProjectFiles checks if any file matches known project identifiers.
-func matchProjectFiles(fileList []os.DirEntry, patterns []string) string {
+func matchProjectFiles(fileList []os.DirEntry, patterns []string) bool {
 	for _, pattern := range patterns {
 		for _, file := range fileList {
 			if file.Name() == pattern {
-				return filepath.Clean(file.Name())
+				return true
 			}
 		}
 	}
-	return ""
+	return false
 }
 
-// getProjectFiles returns a list of file patterns associated with projects.
-func getProjectFiles() []string {
-	return []string{
-		".git",
-		".gitignore",
-		"pyproject.toml",
-		"compile_commands.json", // ccls clangd
-		"compile_flags.txt",     // ccls clangd
-		".ccls-cache",           // ccls
-		".clangd",               // clangd
-		"pubspec.yaml",          // dart
-		"Dockerfile",            // docker - could be problematic
-		"elm.json",              // elm
-		".flowconfig",           // flow
-		"fortls",                // fortran
-		"project.godot",         // godot
-		"stack.yaml",            // ghci, hie
-		"hie-bios",              // ghci
-		"BUILD.bazel",           // ghci
-		"cabal.config",          // ghci
-		"package.yaml",          // ghci, hie
-		"go.mod",                // go
-		"package.json",          // html, cssls, ocaml, typescript
-		".envrc",                // nix flake
-		"flake.nix",             // nix flake
-		"composer.json",         // intelephense (php)
-		"build.sbt",             // metals
-		"build.sc",              // metals
-		"build.gradle",          // metals
-		"pom.xml",               // metals
-		".merlin",               // ocaml
-		"Cargo.toml",            // rust
-		"Gemfile",               // ruby, solargraph
-		"vue.config.js",         // vue
-		"pyrightconfig.json",    // python
-		"Makefile",              // misc
-		".idea",                 // Editor
-		".vscode",               // Editor
-		".ensime_cache",         // scala
-		".eunit",                // erlang
-		".hg",                   // vc (mercurial)
-		"_FOSSIL_",              // vc (fossil)
-		".fslckout",             // vc (fossil)
-		".bzr",                  // vc (bazaar)
-		"arcs",                  // idk (was in projectile)
-		".pijul",                // vc (pijul)
-		".tox",                  // python
-		".svn",                  // vc (svn)
-		".stack-work",           // testing app
-		".cache",                // idk
-		".sl",                   // c#?
-		".jj",                   // java
-		"GTAGS",                 // c
-		"TAGS",                  // c
-		"configure.ac",          // c/c++
-		"configure.in",          // c/c++
-		"cscope.out",            // c
+func getCategorizedProjectFiles() map[string][]string {
+	return map[string][]string{
+		// Version Control
+		"git": {
+			".git",
+			".gitignore",
+		},
+		"mercurial": {
+			".hg",
+		},
+		"svn": {
+			".svn",
+		},
+		"bazaar": {
+			".bzr",
+		},
+		"fossil": {
+			"_FOSSIL_",
+			".fslckout",
+		},
+		"pijul": {
+			".pijul",
+		},
+
+		// C and C++
+		"c": {
+			"compile_commands.json",
+			"compile_flags.txt",
+			"Makefile",
+			"configure.ac",
+			"configure.in",
+			"cscope.out",
+			"GTAGS",
+			"TAGS",
+		},
+		"cpp": {
+			"compile_commands.json",
+			"compile_flags.txt",
+			"Makefile",
+			".clangd",
+			".ccls-cache",
+		},
+
+		// Python
+		"python": {
+			"pyproject.toml",
+			"requirements.txt",
+			"setup.py",
+			"tox.ini",
+			".tox",
+			"pyrightconfig.json",
+		},
+
+		// JavaScript/Node.js
+		"nodejs": {
+			"package.json",
+			"yarn.lock",
+			"pnpm-lock.yaml",
+			"webpack.config.js",
+			"rollup.config.js",
+			"vite.config.js",
+		},
+
+		// Go
+		"go": {
+			"go.mod",
+			"go.sum",
+		},
+
+		// Rust
+		"rust": {
+			"Cargo.toml",
+			"Cargo.lock",
+		},
+
+		// Java
+		"java": {
+			"pom.xml",
+			"build.gradle",
+			"build.gradle.kts",
+			".classpath",
+			".project",
+		},
+
+		// Haskell
+		"haskell": {
+			"stack.yaml",
+			"cabal.config",
+			"package.yaml",
+			"hie-bios",
+		},
+
+		// Dart/Flutter
+		"dart": {
+			"pubspec.yaml",
+		},
+
+		// Ruby
+		"ruby": {
+			"Gemfile",
+			"Gemfile.lock",
+		},
+
+		// PHP
+		"php": {
+			"composer.json",
+			"composer.lock",
+		},
+
+		// Docker
+		"docker": {
+			"Dockerfile",
+			"docker-compose.yml",
+		},
+
+		// Elm
+		"elm": {
+			"elm.json",
+		},
+
+		// Fortran
+		"fortran": {
+			"fortls",
+		},
+
+		// Nix
+		"nix": {
+			"flake.nix",
+			".envrc",
+		},
+
+		// Scala
+		"scala": {
+			"build.sbt",
+			".ensime_cache",
+		},
+
+		// Vue
+		"vue": {
+			"vue.config.js",
+		},
+
+		// Godot
+		"godot": {
+			"project.godot",
+		},
+
+		// Editor Configurations
+		"editor": {
+			".idea",
+			".vscode",
+		},
+
+		// Miscellaneous
+		"make": {
+			"Makefile",
+		},
+		"ocaml": {
+			".merlin",
+		},
+		"erlang": {
+			".eunit",
+		},
+		"metals": {
+			"metals.sbt",
+			"build.sc",
+		},
+		"environment": {
+			".env",
+			".envrc",
+		},
+		"cache": {
+			".cache",
+		},
 	}
 }

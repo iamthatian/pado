@@ -12,6 +12,7 @@ import (
 var ps ProjectState
 
 func main() {
+	// TODO: Load Config as well and pass in to LoadState
 	if err := ps.LoadState(); err != nil {
 		log.Fatal(err)
 	}
@@ -36,7 +37,18 @@ func main() {
 				Aliases: []string{"a"},
 				Usage:   "add project",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					if err := ps.AddProject(cmd.Args().Get(0)); err != nil {
+					project := Project{}
+					var projectPath string
+					if err := project.FindProject(cmd.Args().Get(0)); err != nil {
+						log.Fatal(err)
+					}
+					if project.Path == "/" {
+						projectPath = cmd.Args().Get(1)
+					} else {
+						projectPath = project.Path
+					}
+
+					if err := ps.AddProject(projectPath); err != nil {
 						log.Fatal(err)
 					}
 					return nil
@@ -108,18 +120,19 @@ func main() {
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			projectPath := cmd.Args().Get(0)
+			// TOOD Should nested stuff also increment? If so, find project here too
 			project, err := ps.GetProject(projectPath)
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			if project.IsEmpty() {
-				if err := project.FindProject(projectPath, 100); err != nil {
+				if err := project.FindProject(projectPath); err != nil {
 					log.Fatal(err)
 				}
 			}
 
-			fmt.Println(project.Path)
+			fmt.Println(project)
 			return nil
 		},
 	}

@@ -134,7 +134,6 @@ func (ps *ProjectState) AddProject(projectPath string) error {
 	ps.Projects[normalizedPath] = Project{
 		Name: getBase(normalizedPath),
 		Path: normalizedPath,
-		Kind: "c",
 	}
 
 	return ps.SaveState()
