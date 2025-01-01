@@ -12,7 +12,7 @@ type Project struct {
 	Kind         string
 	Description  string
 	Priority     int
-	BuildCommand string
+	BuildCommand []string
 	License      string
 }
 

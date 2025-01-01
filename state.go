@@ -1,16 +1,18 @@
 package main
 
 import (
+	"bufio"
 	"encoding/gob"
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"runtime"
 	"sort"
 	"strconv"
-	// "strings"
+	"strings"
 )
 
 type ProjectState struct {
@@ -181,6 +183,7 @@ func (ps *ProjectState) ManageBlacklist(path string, add bool) error {
 }
 
 // Get projects that contain term
+// does not work properly
 func (ps *ProjectState) FilterProject(searchTerm string) []Project {
 	var result []Project
 	for _, value := range ps.Projects {
@@ -189,16 +192,118 @@ func (ps *ProjectState) FilterProject(searchTerm string) []Project {
 		values := make([]interface{}, v.NumField())
 
 		for i := 0; i < v.NumField(); i++ {
-			values[i] = v.Field(i).Interface()
+			// values[i] =
+			val := v.Field(i).Interface()
+			// fmt.Println(v.Field(i).Interface())
 			// figure out what this type is
+			if reflect.TypeOf(val) == reflect.TypeOf("") {
+				if strings.Contains(val.(string), searchTerm) {
+					result = append(result, value)
+				}
+			} else if reflect.TypeOf(val) == reflect.TypeOf(1) {
+				if strings.Contains(strconv.Itoa(val.(int)), searchTerm) {
+					result = append(result, value)
+				}
+			}
+			// fmt.Println(reflect.TypeOf(val))
 			// if strings.Contains(v.Field(i).Interface(), searchTerm) {
-			// 	result = append(result, value)
+			// result = append(result, value)
 			// }
 		}
 
 		fmt.Println(values)
 	}
 	return result
+}
+
+func (ps *ProjectState) ExecProject(path string, args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("no command provided")
+	}
+
+	// Create a new project to find the root
+	project := Project{}
+
+	// If path is provided, use it, otherwise use current directory
+	searchPath := path
+	if searchPath == "" {
+		var err error
+		searchPath, err = os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current directory: %w", err)
+		}
+	}
+
+	// Find the project root
+	if err := project.FindProject(searchPath); err != nil {
+		return fmt.Errorf("failed to find project: %w", err)
+	}
+
+	// If no project found (root is "/"), use the original path
+	projectPath := project.Path
+	if projectPath == "/" {
+		projectPath = searchPath
+	}
+
+	// Create and configure command
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Dir = projectPath
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	// Execute command
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("command execution failed in %s: %w", projectPath, err)
+	}
+
+	return nil
+}
+
+func (ps *ProjectState) RunProject(path string) error {
+	normalizedPath, err := CanonicalizePath(path)
+	if err != nil {
+		return err
+	}
+	project := ps.Projects[normalizedPath]
+	if len(project.BuildCommand) == 0 {
+		fmt.Println(project.BuildCommand)
+
+		fmt.Println("No command for project!")
+		fmt.Print("Enter project command: ")
+
+		fmt.Print("Enter space-separated values: ")
+
+		scanner := bufio.NewScanner(os.Stdin)
+		if scanner.Scan() {
+			input := scanner.Text()
+
+			fields := strings.Fields(input)
+			project.BuildCommand = fields
+
+			ps.Projects[normalizedPath] = project
+			ps.SaveState()
+		}
+
+		// Check for scanner errors
+		if err := scanner.Err(); err != nil {
+			fmt.Println("Error reading input:", err)
+		}
+	} else {
+		command := project.BuildCommand[0] // First element is the command
+		args := project.BuildCommand[1:]   // Remaining elements are the arguments
+		runner := exec.Command(command, args...)
+		runner.Stdout = os.Stdout
+		runner.Stderr = os.Stderr
+		runner.Stdin = os.Stdin
+		runner.Dir = project.Path
+		err := runner.Run()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (ps *ProjectState) UpdateProject(projectPath, key, value string) error {
@@ -221,8 +326,8 @@ func (ps *ProjectState) UpdateProject(projectPath, key, value string) error {
 		project.Kind = value
 	case "Description":
 		project.Description = value
-	case "BuildCommand":
-		project.BuildCommand = value
+	// case "BuildCommand":
+	// 	project.BuildCommand = value
 	case "Priority":
 		priority, err := strconv.Atoi(value)
 		if err != nil {
