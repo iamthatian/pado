@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"sort"
 	"strconv"
+	// "strings"
 )
 
 type ProjectState struct {
@@ -72,7 +74,7 @@ func (ps *ProjectState) SaveState() error {
 }
 
 func (ps *ProjectState) GetProject(path string) (Project, error) {
-	normalizedPath, err := NormalizePath(path)
+	normalizedPath, err := CanonicalizePath(path)
 	if err != nil {
 		return Project{}, fmt.Errorf("failed to normalize path: %w", err)
 	}
@@ -118,7 +120,7 @@ func (ps *ProjectState) ListProjects() []Project {
 }
 
 func (ps *ProjectState) AddProject(projectPath string) error {
-	normalizedPath, err := NormalizePath(projectPath)
+	normalizedPath, err := CanonicalizePath(projectPath)
 	if err != nil {
 		return err
 	}
@@ -140,7 +142,7 @@ func (ps *ProjectState) AddProject(projectPath string) error {
 }
 
 func (ps *ProjectState) RemoveProject(projectPath string) error {
-	normalizedPath, err := NormalizePath(projectPath)
+	normalizedPath, err := CanonicalizePath(projectPath)
 	if err != nil {
 		return err
 	}
@@ -164,7 +166,7 @@ func (ps *ProjectState) ShowBlacklist() ([]string, error) {
 }
 
 func (ps *ProjectState) ManageBlacklist(path string, add bool) error {
-	normalizedPath, err := NormalizePath(path)
+	normalizedPath, err := CanonicalizePath(path)
 	if err != nil {
 		return err
 	}
@@ -178,8 +180,29 @@ func (ps *ProjectState) ManageBlacklist(path string, add bool) error {
 	return ps.SaveState()
 }
 
+// Get projects that contain term
+func (ps *ProjectState) FilterProject(searchTerm string) []Project {
+	var result []Project
+	for _, value := range ps.Projects {
+		v := reflect.ValueOf(value)
+
+		values := make([]interface{}, v.NumField())
+
+		for i := 0; i < v.NumField(); i++ {
+			values[i] = v.Field(i).Interface()
+			// figure out what this type is
+			// if strings.Contains(v.Field(i).Interface(), searchTerm) {
+			// 	result = append(result, value)
+			// }
+		}
+
+		fmt.Println(values)
+	}
+	return result
+}
+
 func (ps *ProjectState) UpdateProject(projectPath, key, value string) error {
-	normalizedPath, err := NormalizePath(projectPath)
+	normalizedPath, err := CanonicalizePath(projectPath)
 	if err != nil {
 		return err
 	}
@@ -198,6 +221,8 @@ func (ps *ProjectState) UpdateProject(projectPath, key, value string) error {
 		project.Kind = value
 	case "Description":
 		project.Description = value
+	case "BuildCommand":
+		project.BuildCommand = value
 	case "Priority":
 		priority, err := strconv.Atoi(value)
 		if err != nil {
@@ -208,6 +233,8 @@ func (ps *ProjectState) UpdateProject(projectPath, key, value string) error {
 		return fmt.Errorf("unknown key: %s", key)
 	}
 
+	// Friggin rust it too difficult for this
+	// here it saves
 	ps.Projects[normalizedPath] = project
 	return ps.SaveState()
 }

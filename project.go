@@ -7,11 +7,42 @@ import (
 
 // Project struct represents a project with metadata.
 type Project struct {
-	Name        string
-	Path        string
-	Kind        string
-	Description string
-	Priority    int
+	Name         string
+	Path         string
+	Kind         string
+	Description  string
+	Priority     int
+	BuildCommand string
+	License      string
+}
+
+//	type ProjectMetadata struct {
+//		Vc      string
+//		Branch  string
+//		Awesome string
+//	}
+//
+//	type MetadataCategory struct {
+//		DevOps        bool
+//		Testing       bool
+//		Documentation bool
+//		Editor        bool
+//		Linting       bool
+//		Deployment    bool
+//		Database      bool
+//		Security      bool
+//	}
+
+type ProjectVersionControl struct {
+	version string
+	branch  string
+}
+
+type ProjectMetadata struct {
+	Category      string
+	Description   string
+	Files         []string
+	Related_tools []string
 }
 
 // IsEmpty checks if the project is not initialized.
@@ -20,10 +51,11 @@ func (p *Project) IsEmpty() bool {
 }
 
 // FindProject traverses directories to locate project-specific files.
+// Used to mutate project data (should rather return and defer it to update project)
 func (p *Project) FindProject(startPath string) error {
 	maxDepth := 100
 	depth := 0
-	currentPath, err := NormalizePath(startPath)
+	currentPath, err := CanonicalizePath(startPath)
 	if err != nil {
 		return err
 	}
@@ -31,13 +63,12 @@ func (p *Project) FindProject(startPath string) error {
 	completePatterns := getCategorizedProjectFiles()
 
 	for currentPath != "/" && depth <= maxDepth {
+		// list files
 		files, err := os.ReadDir(currentPath)
 		if err != nil {
 			return err
 		}
 
-		// This is an unsorted map so might have to keep track of depth
-		// TODO: priority of projects (i.e. custom takes priority over project and lang takes priority project over git)
 		for category, patterns := range completePatterns {
 			if matched := matchProjectFiles(files, patterns); matched {
 				p.Path = filepath.Clean(currentPath)
@@ -63,6 +94,51 @@ func matchProjectFiles(fileList []os.DirEntry, patterns []string) bool {
 		}
 	}
 	return false
+}
+
+type ProjectType struct {
+	kind     string
+	files    []string
+	priority uint
+}
+
+type MonoRepoSubproject struct {
+	ParentType   string
+	RelativePath string
+}
+
+type MultipleRootIndicators struct {
+	Indicators []string
+	Chosen     string
+	Reason     string
+}
+
+type InconsistentStructure struct {
+	expected_files []string
+	missing_files  []string
+}
+
+type AmbiguousRoot struct {
+	possible_roots    []string
+	confidence_scores []float32
+}
+
+type ProjectEdgeCases struct {
+	MonoRepoSubproject
+	MultipleRootIndicators
+	InconsistentStructure
+	AmbiguousRoot
+}
+
+type RootIndicator struct {
+	Priority    uint8
+	Description string
+	Files       string
+	// New fields for better detection
+	Required_files    []string
+	Optional_files    []string
+	Exclude_patterns  []string
+	Parent_indicators []string
 }
 
 func getCategorizedProjectFiles() map[string][]string {

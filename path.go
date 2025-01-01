@@ -2,47 +2,44 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 )
 
-func Wd(path string) (string, error) {
-	var err error
-	if path == "" {
-		path, err = os.Getwd()
-		if err != nil {
-			return "", err
-		}
-	}
-
-	return path, nil
-}
-
-func NormalizePath(path string) (string, error) {
-	wd, err := Wd(path)
+// Returns CWD if input is empty
+func CanonicalizePath(input string) (string, error) {
+	absPath, err := filepath.Abs(input)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get absolute path: %w", err)
 	}
 
-	var fullPath string
-	if !filepath.IsAbs(wd) {
-		absPath, err := filepath.Abs(wd)
-		if err != nil {
-			return "", err
+	cleanPath := filepath.Clean(absPath)
+
+	resolvedPath, err := filepath.EvalSymlinks(cleanPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return "", fmt.Errorf("path does not exist: %s", cleanPath)
 		}
-		fullPath = absPath
-	} else {
-		fullPath = filepath.Clean(wd)
+		return "", fmt.Errorf("failed to resolve symlinks: %w", err)
 	}
 
-	if stat, err := os.Stat(fullPath); err == nil {
-		if !stat.IsDir() {
-			fullPath = filepath.Dir(fullPath)
+	info, err := os.Stat(resolvedPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return "", fmt.Errorf("path does not exist: %s", resolvedPath)
 		}
-		return fullPath, nil
-	} else {
-		return "", errors.New("wrong file path")
+		return "", fmt.Errorf("error checking path: %w", err)
 	}
+
+	if !info.IsDir() && info.Mode().IsRegular() {
+		// return parent
+		return filepath.Dir(resolvedPath), nil
+	} else if info.IsDir() {
+		return resolvedPath, nil
+	}
+
+	return "", fmt.Errorf("unknown path type for: %s", resolvedPath)
 }
 
 func getParent(path string) string {

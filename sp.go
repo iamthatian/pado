@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	// "os/exec"
 
 	"github.com/urfave/cli/v3"
 )
@@ -15,6 +16,21 @@ func main() {
 	// TODO: Load Config as well and pass in to LoadState
 	if err := ps.LoadState(); err != nil {
 		log.Fatal(err)
+	}
+
+	try_get_project := func(path string) (Project, error) {
+		project, err := ps.GetProject(path)
+		if err != nil {
+			return project, fmt.Errorf("%v", err)
+		}
+
+		if project.IsEmpty() {
+			if err := project.FindProject(path); err != nil {
+				return project, fmt.Errorf("%v", err)
+			}
+		}
+
+		return project, nil
 	}
 
 	cmd := &cli.Command{
@@ -65,6 +81,81 @@ func main() {
 					return nil
 				},
 			},
+
+			{
+				Name:            "exec",
+				Usage:           "Execute a command with arguments",
+				SkipFlagParsing: true,
+				ArgsUsage:       "[PATH] COMMAND [ARGS...]",
+				Action: func(ctx context.Context, cmd *cli.Command) error {
+					args := cmd.Args().Slice()
+					if len(args) < 1 {
+						return cli.Exit("Command required", 1)
+					}
+
+					// var cmdArgs []string
+					// var projectPath string
+					//
+					// Check if first arg is a path
+					// what if path's name is ls?
+					// 	possiblePath := args[0]
+					// 	if absPath, err := filepath.Abs(expandPath(possiblePath)); err == nil {
+					// 		if fi, err := os.Stat(absPath); err == nil && fi.IsDir() {
+					// 			projectPath = absPath
+					// 			cmdArgs = args[1:] // Skip the path in command args
+					// 		} else {
+					// 			project, err := try_get_project("")
+					// 			if err != nil {
+					// 				log.Fatal(err)
+					// 			}
+					// 			projectPath = project.Path
+					// 			cmdArgs = args
+					// 		}
+					// 	} else {
+					// 		project, err := try_get_project("")
+					// 		if err != nil {
+					// 			log.Fatal(err)
+					// 		}
+					// 		projectPath = project.Path
+					// 		cmdArgs = args
+					// 	}
+					//
+					// 	runner := exec.Command(cmdArgs[0], cmdArgs[1:]...)
+					// 	runner.Stdout = os.Stdout
+					// 	runner.Stderr = os.Stderr
+					// 	runner.Stdin = os.Stdin
+					// 	runner.Dir = projectPath
+					// 	return runner.Run()
+					fmt.Println("awesome")
+					return nil
+				},
+			},
+			// {
+			// 	Name:            "exec",
+			// 	Usage:           "Execute a command with arguments",
+			// 	SkipFlagParsing: true, // Only skip for exec command
+			// 	ArgsUsage:       "COMMAND [ARGS...]",
+			// 	Action: func(ctx context.Context, cmd *cli.Command) error {
+			// 		if cmd.Args().Len() < 1 {
+			// 			return cli.Exit("Command required", 1)
+			// 		}
+			//
+			// 		project, err := try_get_project("")
+			// 		if err != nil {
+			// 			log.Fatal(err)
+			// 		}
+			//
+			// 		args := cmd.Args().Slice()
+			//
+			// 		runner := exec.Command(args[0], args[1:]...)
+			// 		runner.Stdout = os.Stdout
+			// 		runner.Stderr = os.Stderr
+			// 		runner.Stdin = os.Stdin
+			// 		runner.Dir = project.Path
+			// 		return runner.Run()
+			// 	},
+			// },
+			//
 			{
 				Name:    "update",
 				Aliases: []string{"u"},
@@ -121,16 +212,21 @@ func main() {
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			projectPath := cmd.Args().Get(0)
 			// TOOD Should nested stuff also increment? If so, find project here too
-			project, err := ps.GetProject(projectPath)
+			project, err := try_get_project(projectPath)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			if project.IsEmpty() {
-				if err := project.FindProject(projectPath); err != nil {
-					log.Fatal(err)
-				}
-			}
+			// project, err := ps.GetProject(projectPath)
+			// if err != nil {
+			// 	log.Fatal(err)
+			// }
+			//
+			// if project.IsEmpty() {
+			// 	if err := project.FindProject(projectPath); err != nil {
+			// 		log.Fatal(err)
+			// 	}
+			// }
 
 			fmt.Println(project.Path)
 			return nil
