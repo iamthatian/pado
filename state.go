@@ -216,6 +216,7 @@ func (ps *ProjectState) FilterProject(searchTerm string) []Project {
 	return result
 }
 
+// TODO: Define UX for this
 func (ps *ProjectState) ExecProject(path string, args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("no command provided")

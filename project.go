@@ -33,18 +33,18 @@ type Project struct {
 //		Security      bool
 //	}
 
-type ProjectVersionControl struct {
-	version string
-	branch  string
-}
-
-type ProjectMetadata struct {
-	Category      string
-	Description   string
-	Files         []string
-	Related_tools []string
-}
-
+//	type ProjectVersionControl struct {
+//		version string
+//		branch  string
+//	}
+//
+//	type ProjectMetadata struct {
+//		Category      string
+//		Description   string
+//		Files         []string
+//		Related_tools []string
+//	}
+//
 // IsEmpty checks if the project is not initialized.
 func (p *Project) IsEmpty() bool {
 	return len(p.Path) == 0
