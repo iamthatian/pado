@@ -261,6 +261,7 @@ func (ps *ProjectState) ExecProject(path string, args []string) error {
 	return nil
 }
 
+// TODO: refactor
 func (ps *ProjectState) RunProject(path string) error {
 	normalizedPath, err := CanonicalizePath(path)
 	if err != nil {
@@ -268,12 +269,8 @@ func (ps *ProjectState) RunProject(path string) error {
 	}
 	project := ps.Projects[normalizedPath]
 	if len(project.BuildCommand) == 0 {
-		fmt.Println(project.BuildCommand)
-
 		fmt.Println("No command for project!")
 		fmt.Print("Enter project command: ")
-
-		fmt.Print("Enter space-separated values: ")
 
 		scanner := bufio.NewScanner(os.Stdin)
 		if scanner.Scan() {
@@ -292,15 +289,46 @@ func (ps *ProjectState) RunProject(path string) error {
 		}
 	} else {
 		command := project.BuildCommand[0] // First element is the command
-		args := project.BuildCommand[1:]   // Remaining elements are the arguments
-		runner := exec.Command(command, args...)
-		runner.Stdout = os.Stdout
-		runner.Stderr = os.Stderr
-		runner.Stdin = os.Stdin
-		runner.Dir = project.Path
-		err := runner.Run()
-		if err != nil {
-			return err
+		fmt.Println("Running:", strings.Join(project.BuildCommand, " "))
+		fmt.Print("Is this the right command? [y/n/(c)hange] ")
+		var confirm string
+		fmt.Scanln(&confirm)
+
+		switch confirm {
+		case "n", "N":
+			fmt.Println("Canceled run")
+		case "y", "Y":
+			args := project.BuildCommand[1:] // Remaining elements are the arguments
+			runner := exec.Command(command, args...)
+			runner.Stdout = os.Stdout
+			runner.Stderr = os.Stderr
+			runner.Stdin = os.Stdin
+			runner.Dir = project.Path
+			err := runner.Run()
+			if err != nil {
+				return err
+			}
+
+		case "c", "C":
+			fmt.Print("Enter project command: ")
+
+			scanner := bufio.NewScanner(os.Stdin)
+			if scanner.Scan() {
+				input := scanner.Text()
+
+				fields := strings.Fields(input)
+				project.BuildCommand = fields
+
+				ps.Projects[normalizedPath] = project
+				ps.SaveState()
+			}
+
+			// Check for scanner errors
+			if err := scanner.Err(); err != nil {
+				fmt.Println("Error reading input:", err)
+			}
+		default:
+			fmt.Println("doing nothing...")
 		}
 	}
 
