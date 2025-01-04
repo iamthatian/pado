@@ -291,62 +291,112 @@ func LANGUAGE_INDICATORS() []ProjectRootIndicator {
 				".mvn",
 			},
 		},
-		//
-		// // Dart/Flutter
-		// "dart": {
-		// 	"pubspec.yaml",
-		// },
-		//
-		// "elm": {
-		// 	"elm.json",
-		// },
-		//
-		// // Fortran
-		// "fortran": {
-		// 	"fortls",
-		// },
-		//
-		// // Nix
-		// "nix": {
-		// 	"flake.nix",
-		// 	".envrc",
-		// },
-		//
-		// // Scala
-		// "scala": {
-		// 	"build.sbt",
-		// 	".ensime_cache",
-		// },
-		//
-		// // Godot
-		// "godot": {
-		// 	"project.godot",
-		// },
-		//
-		// "ocaml": {
-		// 	".merlin",
-		// },
-		//
-		//       language_map.insert("swift", vec!["Package.swift"]);
-		//
-		//       language_map.insert("kotlin", vec!["build.gradle.kts", "settings.gradle.kts"]);
-		//
-		//       language_map.insert("julia", vec!["Project.toml", "Manifest.toml"]);
-		//
-		//       language_map.insert("r", vec!["DESCRIPTION", ".Rproj"]);
-		//
-		//       language_map.insert("elixir", vec!["mix.exs"]);
-		//
-		//       language_map.insert("clojure", vec!["project.clj", "deps.edn"]);
-		//
-		// "erlang": {
-		// 	".eunit",
-		// },
-		// "metals": {
-		// 	"metals.sbt",
-		// 	"build.sc",
-		// },
-		//
+
+		// Dart/Flutter
+		{
+			Type:     "dart",
+			Priority: 200,
+			Patterns: []string{"pubspec.yaml"},
+		},
+
+		// Elm
+		{
+			Type:     "elm",
+			Priority: 200,
+			Patterns: []string{"elm.json"},
+		},
+
+		// Fortran
+		{
+			Type:     "fortran",
+			Priority: 200,
+			Patterns: []string{"fortls"},
+		},
+
+		// Nix (maybe move this out?)
+		{
+			Type:     "Nix",
+			Priority: 100,
+			Patterns: []string{"flake.nix", ".envrc"},
+		},
+
+		// Scala
+		{
+			Type:     "Scala",
+			Priority: 200,
+			Patterns: []string{"built.sbt", ".ensime_cache"},
+		},
+
+		// Godot
+		{
+			Type:     "godot",
+			Priority: 200,
+			Patterns: []string{"project.godot"},
+		},
+
+		// Ocaml
+		{
+			Type:     "ocaml",
+			Priority: 200,
+			Patterns: []string{".merlin"},
+		},
+
+		// Erlang
+		{
+			Type:     "erlang",
+			Priority: 200,
+			Patterns: []string{".eunit"},
+		},
+
+		// Metals
+		{
+			Type:     "metals",
+			Priority: 200,
+			Patterns: []string{"metals.sbt", "build.sc"},
+		},
+
+		// Swift
+		{
+			Type:     "swift",
+			Priority: 200,
+			Patterns: []string{"Package.swift"},
+		},
+
+		// Kotlin
+		{
+			Type:     "kotlin",
+			Priority: 200,
+			Patterns: []string{"build.gradle.kts", "settings.gradle.kts"},
+		},
+
+		// Julia
+		{
+			Type:     "julia",
+			Priority: 200,
+			Patterns: []string{"Project.toml", "Manifest.toml"},
+		},
+
+		// R
+		{
+			Type:     "r",
+			Priority: 200,
+			Patterns: []string{"DESCRIPTION", ".Rproj"},
+		},
+
+		// Elixir
+		{
+			Type:     "elixir",
+			Priority: 200,
+			Patterns: []string{"mix.exs"},
+		},
+
+		// Clojure
+		{
+			Type:     "clojure",
+			Priority: 200,
+			Patterns: []string{"project.clj", "deps.edn"},
+		},
+
 		// Ruby
 		{
 			Type:     "ruby",
