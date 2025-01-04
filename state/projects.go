@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/duckonomy/sp/project"
-	"github.com/duckonomy/sp/utils"
+	"github.com/duckonomy/parkour/project"
+	"github.com/duckonomy/parkour/utils"
 )
 
 type ProjectState struct {

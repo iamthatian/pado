@@ -1,4 +1,4 @@
-module github.com/duckonomy/sp
+module github.com/duckonomy/parkour
 
 go 1.23.4
 

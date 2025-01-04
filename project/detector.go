@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/duckonomy/sp/utils"
+	"github.com/duckonomy/parkour/utils"
 )
 
 // NOTE: Don't have separate ProjectRoot type because

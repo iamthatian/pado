@@ -7,8 +7,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/duckonomy/sp/project"
-	"github.com/duckonomy/sp/state"
+	"github.com/duckonomy/parkour/project"
+	"github.com/duckonomy/parkour/state"
 	"github.com/urfave/cli/v3"
 )
 
