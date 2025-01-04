@@ -32,7 +32,7 @@ func (p *Project) InitProject(path string) error {
 		return err
 	}
 
-	err = p.AnaylzeProject()
+	err = p.AnalyzeProject()
 	if err != nil {
 		return err
 	}

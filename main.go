@@ -196,7 +196,10 @@ func main() {
 				log.Fatal(err)
 			}
 
+			state.GetConfig()
+
 			fmt.Println(p.Path)
+
 			return nil
 		},
 	}

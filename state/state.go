@@ -12,18 +12,29 @@ import (
 )
 
 func StateFilePath() (string, error) {
+	switch runtime.GOOS {
+	case "darwin":
+		return checkStateFilePath("Library/Application Support/parkour")
+	case "linux":
+		return checkStateFilePath(".local/state/parkour")
+	default:
+		return "", errors.New("unsupported OS")
+	}
+}
+
+func checkStateFilePath(dirPath string) (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
-	switch runtime.GOOS {
-	case "darwin":
-		return filepath.Join(home, "Library/Application Support/parkour/parkour.db"), nil
-	case "linux":
-		return filepath.Join(home, ".local/state/parkour/parkour.db"), nil
-	default:
-		return "", errors.New("unsupported OS")
+
+	statePath := filepath.Join(home, dirPath)
+
+	if err := utils.CheckPath(statePath, true); err != nil {
+		return "", err
 	}
+
+	return filepath.Join(statePath, "parkour.db"), nil
 }
 
 func (ps *ProjectState) LoadState() error {
