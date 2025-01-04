@@ -7,10 +7,12 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/duckonomy/sp/project"
+	"github.com/duckonomy/sp/state"
 	"github.com/urfave/cli/v3"
 )
 
-var ps ProjectState
+var ps state.ProjectState
 
 func main() {
 	// TODO: Load Config as well and pass in to LoadState
@@ -18,19 +20,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	try_get_project := func(path string) (Project, error) {
-		project, err := ps.GetProject(path)
+	try_get_project := func(path string) (project.Project, error) {
+		p, err := ps.GetProject(path)
 		if err != nil {
-			return project, fmt.Errorf("%v", err)
+			return p, fmt.Errorf("%v", err)
 		}
 
-		if project.IsEmpty() {
-			if err := project.FindProject(path); err != nil {
-				return project, fmt.Errorf("%v", err)
+		if p.IsEmpty() {
+			if err := p.FindProjectRoot(path); err != nil {
+				return p, fmt.Errorf("%v", err)
 			}
 		}
 
-		return project, nil
+		return p, nil
 	}
 
 	cmd := &cli.Command{
@@ -42,8 +44,8 @@ func main() {
 				Aliases: []string{"l"},
 				Usage:   "list projects",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					for _, project := range ps.ListProjects() {
-						fmt.Println(project.Path)
+					for _, p := range ps.ListProjects() {
+						fmt.Println(p.Path)
 					}
 					return nil
 				},
@@ -53,15 +55,15 @@ func main() {
 				Aliases: []string{"a"},
 				Usage:   "add project",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					project := Project{}
+					p := project.Project{}
 					var projectPath string
-					if err := project.FindProject(cmd.Args().Get(0)); err != nil {
+					if err := p.FindProjectRoot(cmd.Args().Get(0)); err != nil {
 						log.Fatal(err)
 					}
-					if project.Path == "/" {
+					if p.Path == "/" {
 						projectPath = cmd.Args().Get(1)
 					} else {
-						projectPath = project.Path
+						projectPath = p.Path
 					}
 
 					if err := ps.AddProject(projectPath); err != nil {
@@ -97,18 +99,18 @@ func main() {
 					var projectPath string
 					mainArgs := cmd.Root().Args().Slice()
 					if len(mainArgs) > 0 && mainArgs[0] != "exec" {
-						project, err := try_get_project(mainArgs[0])
+						p, err := try_get_project(mainArgs[0])
 						if err != nil {
 							return cli.Exit(err.Error(), 1)
 						}
-						projectPath = project.Path
+						projectPath = p.Path
 					} else {
 						// No path provided, try current directory
-						project, err := try_get_project("")
+						p, err := try_get_project("")
 						if err != nil {
 							return cli.Exit(err.Error(), 1)
 						}
-						projectPath = project.Path
+						projectPath = p.Path
 					}
 
 					// Create and configure command
@@ -189,12 +191,12 @@ func main() {
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			projectPath := cmd.Args().Get(0)
 			// TOOD Should nested stuff also increment? If so, find project here too
-			project, err := try_get_project(projectPath)
+			p, err := try_get_project(projectPath)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			fmt.Println(project.Path)
+			fmt.Println(p.Path)
 			return nil
 		},
 	}

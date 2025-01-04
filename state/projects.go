@@ -1,116 +1,61 @@
-package main
+// Everything related to go
+package state
 
 import (
 	"bufio"
-	"encoding/gob"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"reflect"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/duckonomy/sp/project"
+	"github.com/duckonomy/sp/utils"
 )
 
 type ProjectState struct {
-	Projects  map[string]Project
+	Projects  map[string]project.Project
 	Blacklist map[string]bool
 }
 
-func getStateFilePath() (string, error) {
-	home, err := os.UserHomeDir()
+func (ps *ProjectState) GetProject(path string) (project.Project, error) {
+	normalizedPath, err := utils.CanonicalizePath(path)
 	if err != nil {
-		return "", err
-	}
-	switch runtime.GOOS {
-	case "darwin":
-		return filepath.Join(home, "Library/Application Support/sp/sp.db"), nil
-	case "linux":
-		return filepath.Join(home, ".local/state/sp/sp.db"), nil
-	default:
-		return "", errors.New("unsupported OS")
-	}
-}
-
-func (ps *ProjectState) LoadState() error {
-	stateFilePath, err := getStateFilePath()
-	if err != nil {
-		return err
+		return project.Project{}, fmt.Errorf("failed to normalize path: %w", err)
 	}
 
-	if _, err := os.Stat(stateFilePath); errors.Is(err, os.ErrNotExist) {
-		ps.Projects = make(map[string]Project)
-		ps.Blacklist = make(map[string]bool)
-		return nil
-	} else if err != nil {
-		return err
-	}
-
-	file, err := os.Open(stateFilePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	decoder := gob.NewDecoder(file)
-	return decoder.Decode(ps)
-}
-
-func (ps *ProjectState) SaveState() error {
-	stateFilePath, err := getStateFilePath()
-	if err != nil {
-		return err
-	}
-
-	file, err := os.OpenFile(stateFilePath, os.O_RDWR|os.O_CREATE, 0644)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	encoder := gob.NewEncoder(file)
-	return encoder.Encode(ps)
-}
-
-func (ps *ProjectState) GetProject(path string) (Project, error) {
-	normalizedPath, err := CanonicalizePath(path)
-	if err != nil {
-		return Project{}, fmt.Errorf("failed to normalize path: %w", err)
-	}
-
-	project, exists := ps.Projects[normalizedPath]
+	p, exists := ps.Projects[normalizedPath]
 	if !exists {
-		return Project{}, nil
+		return project.Project{}, nil
 	}
 
 	// Increment priority since the project is being accessed
 	if err := ps.incrementProjectPriority(normalizedPath); err != nil {
-		return Project{}, fmt.Errorf("failed to increment project priority: %w", err)
+		return project.Project{}, fmt.Errorf("failed to increment project priority: %w", err)
 	}
 
-	return project, nil
+	return p, nil
 }
 
 func (ps *ProjectState) incrementProjectPriority(path string) error {
-	project, exists := ps.Projects[path]
+	p, exists := ps.Projects[path]
 	if !exists {
 		return fmt.Errorf("project does not exist: %s", path)
 	}
 
-	project.Priority++
-	ps.Projects[path] = project
+	p.Priority++
+	ps.Projects[path] = p
 
 	return ps.SaveState()
 }
 
-func (ps *ProjectState) ListProjects() []Project {
-	projects := make([]Project, 0, len(ps.Projects))
-	for _, project := range ps.Projects {
-		if !ps.Blacklist[project.Path] {
-			projects = append(projects, project)
+func (ps *ProjectState) ListProjects() []project.Project {
+	projects := make([]project.Project, 0, len(ps.Projects))
+	for _, p := range ps.Projects {
+		if !ps.Blacklist[p.Path] {
+			projects = append(projects, p)
 		}
 	}
 
@@ -122,7 +67,7 @@ func (ps *ProjectState) ListProjects() []Project {
 }
 
 func (ps *ProjectState) AddProject(projectPath string) error {
-	normalizedPath, err := CanonicalizePath(projectPath)
+	normalizedPath, err := utils.CanonicalizePath(projectPath)
 	if err != nil {
 		return err
 	}
@@ -135,8 +80,8 @@ func (ps *ProjectState) AddProject(projectPath string) error {
 		return fmt.Errorf("project already exists: %s", normalizedPath)
 	}
 
-	ps.Projects[normalizedPath] = Project{
-		Name: getBase(normalizedPath),
+	ps.Projects[normalizedPath] = project.Project{
+		Name: utils.GetBase(normalizedPath), //
 		Path: normalizedPath,
 	}
 
@@ -144,7 +89,7 @@ func (ps *ProjectState) AddProject(projectPath string) error {
 }
 
 func (ps *ProjectState) RemoveProject(projectPath string) error {
-	normalizedPath, err := CanonicalizePath(projectPath)
+	normalizedPath, err := utils.CanonicalizePath(projectPath)
 	if err != nil {
 		return err
 	}
@@ -153,39 +98,10 @@ func (ps *ProjectState) RemoveProject(projectPath string) error {
 	return ps.SaveState()
 }
 
-func (ps *ProjectState) ShowBlacklist() ([]string, error) {
-	if ps.Blacklist == nil {
-		return nil, nil
-	}
-
-	var blacklist []string
-	for path, isBlacklisted := range ps.Blacklist {
-		if isBlacklisted {
-			blacklist = append(blacklist, path)
-		}
-	}
-	return blacklist, nil
-}
-
-func (ps *ProjectState) ManageBlacklist(path string, add bool) error {
-	normalizedPath, err := CanonicalizePath(path)
-	if err != nil {
-		return err
-	}
-
-	if add {
-		ps.Blacklist[normalizedPath] = true
-	} else {
-		delete(ps.Blacklist, normalizedPath)
-	}
-
-	return ps.SaveState()
-}
-
 // Get projects that contain term
 // does not work properly
-func (ps *ProjectState) FilterProject(searchTerm string) []Project {
-	var result []Project
+func (ps *ProjectState) FilterProject(searchTerm string) []project.Project {
+	var result []project.Project
 	for _, value := range ps.Projects {
 		v := reflect.ValueOf(value)
 
@@ -223,7 +139,7 @@ func (ps *ProjectState) ExecProject(path string, args []string) error {
 	}
 
 	// Create a new project to find the root
-	project := Project{}
+	p := project.Project{}
 
 	// If path is provided, use it, otherwise use current directory
 	searchPath := path
@@ -236,12 +152,12 @@ func (ps *ProjectState) ExecProject(path string, args []string) error {
 	}
 
 	// Find the project root
-	if err := project.FindProject(searchPath); err != nil {
+	if err := p.FindProjectRoot(searchPath); err != nil {
 		return fmt.Errorf("failed to find project: %w", err)
 	}
 
 	// If no project found (root is "/"), use the original path
-	projectPath := project.Path
+	projectPath := p.Path
 	if projectPath == "/" {
 		projectPath = searchPath
 	}
@@ -263,12 +179,12 @@ func (ps *ProjectState) ExecProject(path string, args []string) error {
 
 // TODO: refactor
 func (ps *ProjectState) RunProject(path string) error {
-	normalizedPath, err := CanonicalizePath(path)
+	normalizedPath, err := utils.CanonicalizePath(path)
 	if err != nil {
 		return err
 	}
-	project := ps.Projects[normalizedPath]
-	if len(project.BuildCommand) == 0 {
+	p := ps.Projects[normalizedPath]
+	if len(p.BuildCommand) == 0 {
 		fmt.Println("No command for project!")
 		fmt.Print("Enter project command: ")
 
@@ -277,9 +193,9 @@ func (ps *ProjectState) RunProject(path string) error {
 			input := scanner.Text()
 
 			fields := strings.Fields(input)
-			project.BuildCommand = fields
+			p.BuildCommand = fields
 
-			ps.Projects[normalizedPath] = project
+			ps.Projects[normalizedPath] = p
 			ps.SaveState()
 		}
 
@@ -288,8 +204,8 @@ func (ps *ProjectState) RunProject(path string) error {
 			fmt.Println("Error reading input:", err)
 		}
 	} else {
-		command := project.BuildCommand[0] // First element is the command
-		fmt.Println("Running:", strings.Join(project.BuildCommand, " "))
+		command := p.BuildCommand[0] // First element is the command
+		fmt.Println("Running:", strings.Join(p.BuildCommand, " "))
 		fmt.Print("Is this the right command? [y/n/(c)hange] ")
 		var confirm string
 		fmt.Scanln(&confirm)
@@ -298,12 +214,12 @@ func (ps *ProjectState) RunProject(path string) error {
 		case "n", "N":
 			fmt.Println("Canceled run")
 		case "y", "Y":
-			args := project.BuildCommand[1:] // Remaining elements are the arguments
+			args := p.BuildCommand[1:] // Remaining elements are the arguments
 			runner := exec.Command(command, args...)
 			runner.Stdout = os.Stdout
 			runner.Stderr = os.Stderr
 			runner.Stdin = os.Stdin
-			runner.Dir = project.Path
+			runner.Dir = p.Path
 			err := runner.Run()
 			if err != nil {
 				return err
@@ -317,9 +233,9 @@ func (ps *ProjectState) RunProject(path string) error {
 				input := scanner.Text()
 
 				fields := strings.Fields(input)
-				project.BuildCommand = fields
+				p.BuildCommand = fields
 
-				ps.Projects[normalizedPath] = project
+				ps.Projects[normalizedPath] = p
 				ps.SaveState()
 			}
 
@@ -336,39 +252,35 @@ func (ps *ProjectState) RunProject(path string) error {
 }
 
 func (ps *ProjectState) UpdateProject(projectPath, key, value string) error {
-	normalizedPath, err := CanonicalizePath(projectPath)
+	normalizedPath, err := utils.CanonicalizePath(projectPath)
 	if err != nil {
 		return err
 	}
 
-	project, exists := ps.Projects[normalizedPath]
+	p, exists := ps.Projects[normalizedPath]
 	if !exists {
 		return fmt.Errorf("project does not exist: %s", normalizedPath)
 	}
 
 	switch key {
 	case "Path":
-		project.Path = value
+		p.Path = value
 	case "Name":
-		project.Name = value
+		p.Name = value
 	case "Kind":
-		project.Kind = value
-	case "Description":
-		project.Description = value
-	// case "BuildCommand":
-	// 	project.BuildCommand = value
+		p.SimpleType = value
 	case "Priority":
 		priority, err := strconv.Atoi(value)
 		if err != nil {
 			return fmt.Errorf("invalid priority value: %s", value)
 		}
-		project.Priority = priority
+		p.Priority = priority
 	default:
 		return fmt.Errorf("unknown key: %s", key)
 	}
 
 	// Friggin rust it too difficult for this
 	// here it saves
-	ps.Projects[normalizedPath] = project
+	ps.Projects[normalizedPath] = p
 	return ps.SaveState()
 }

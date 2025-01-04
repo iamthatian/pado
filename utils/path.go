@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"errors"
@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 )
 
-// Returns CWD if input is empty
 func CanonicalizePath(input string) (string, error) {
 	absPath, err := filepath.Abs(input)
 	if err != nil {
@@ -42,10 +41,14 @@ func CanonicalizePath(input string) (string, error) {
 	return "", fmt.Errorf("unknown path type for: %s", resolvedPath)
 }
 
-func getParent(path string) string {
-	return filepath.Dir(path)
+func IsHomeDir(path string) bool {
+	return path == os.Getenv("HOME")
 }
 
-func getBase(path string) string {
+func IsRootDir(path string) bool {
+	return path == "/"
+}
+
+func GetBase(path string) string {
 	return filepath.Base(path)
 }
