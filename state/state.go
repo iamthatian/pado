@@ -18,9 +18,9 @@ func StateFilePath() (string, error) {
 	}
 	switch runtime.GOOS {
 	case "darwin":
-		return filepath.Join(home, "Library/Application Support/pk/pk.db"), nil
+		return filepath.Join(home, "Library/Application Support/parkour/parkour.db"), nil
 	case "linux":
-		return filepath.Join(home, ".local/state/pk/pk.db"), nil
+		return filepath.Join(home, ".local/state/parkour/parkour.db"), nil
 	default:
 		return "", errors.New("unsupported OS")
 	}
