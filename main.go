@@ -2,38 +2,19 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
 	"github.com/duckonomy/parkour/cmd"
-	"github.com/duckonomy/parkour/project"
-	"github.com/duckonomy/parkour/state"
 	"github.com/urfave/cli/v3"
 )
 
 func main() {
-	var ps state.ProjectState
 	var pathFlag string
 
 	// TODO: Load Config as well and pass in to LoadState
-	if err := ps.LoadState(); err != nil {
+	if err := cmd.Init(); err != nil {
 		log.Fatal(err)
-	}
-
-	try_get_project := func(path string) (project.Project, error) {
-		p, err := ps.GetProject(path)
-		if err != nil {
-			return p, fmt.Errorf("%v", err)
-		}
-
-		if p.IsEmpty() {
-			if err := p.FindProjectRoot(path); err != nil {
-				return p, fmt.Errorf("%v", err)
-			}
-		}
-
-		return p, nil
 	}
 
 	command := &cli.Command{
@@ -94,50 +75,21 @@ func main() {
 				Name:  "find",
 				Usage: "find project",
 				Action: func(ctx context.Context, command *cli.Command) error {
-					pf := cmd.NewProjectFinder()
-					file, err := pf.FindProject()
-					if err != nil {
-						log.Fatal(err)
-					}
-					fmt.Println(file)
-					return nil
+					return cmd.FindProject()
 				},
 			},
 			{
 				Name:  "find-file",
 				Usage: "find file",
 				Action: func(ctx context.Context, command *cli.Command) error {
-					pf := cmd.NewProjectFinder()
-					projectPath := command.Args().Get(0)
-					// TOOD Should nested stuff also increment? If so, find project here too
-					p, err := try_get_project(projectPath)
-					if err != nil {
-						log.Fatal(err)
-					}
-					file, err := pf.FindFile(p.Path)
-					if err != nil {
-						log.Fatal(err)
-					}
-					fmt.Println(file)
-					return nil
+					return cmd.FindFile(command.Args().Get(0))
 				},
 			},
 			{
 				Name:  "grep-file",
 				Usage: "grep file",
 				Action: func(ctx context.Context, command *cli.Command) error {
-					pf := cmd.NewProjectFinder()
-					projectPath := command.Args().Get(0)
-					// TOOD Should nested stuff also increment? If so, find project here too
-					p, err := try_get_project(projectPath)
-					if err != nil {
-						log.Fatal(err)
-					}
-					err = pf.GrepEdit(p.Path)
-					if err != nil {
-						log.Fatal(err)
-					}
-					return nil
+					return cmd.GrepFile(command.Args().Get(0))
 				},
 			},
 			{
@@ -178,18 +130,7 @@ func main() {
 			},
 		},
 		Action: func(ctx context.Context, command *cli.Command) error {
-			projectPath := command.Args().Get(0)
-			// TOOD Should nested stuff also increment? If so, find project here too
-			p, err := try_get_project(projectPath)
-			if err != nil {
-				return err
-			}
-
-			state.GetConfig()
-
-			fmt.Println(p.Path)
-
-			return nil
+			return cmd.Main(command.Args().Get(0))
 		},
 	}
 

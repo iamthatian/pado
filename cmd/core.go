@@ -11,6 +11,13 @@ import (
 
 var ps state.ProjectState
 
+func Init() error {
+	if err := ps.LoadState(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func tryGetProject(path string) (project.Project, error) {
 	p, err := ps.GetProject(path)
 	if err != nil {
@@ -120,6 +127,57 @@ func AddBlacklist(path string) error {
 	if err := ps.ManageBlacklist(path, true); err != nil {
 		return err
 	}
+	return nil
+}
+
+func FindFile(path string) error {
+	pf := NewProjectFinder()
+	// TOOD Should nested stuff also increment? If so, find project here too
+	p, err := tryGetProject(path)
+	if err != nil {
+		return err
+	}
+	file, err := pf.FindFile(p.Path)
+	if err != nil {
+		return err
+	}
+	fmt.Println(file)
+	return nil
+}
+
+func FindProject() error {
+	pf := NewProjectFinder()
+	file, err := pf.FindProject()
+	if err != nil {
+		return err
+	}
+	fmt.Println(file)
+	return nil
+}
+
+func GrepFile(path string) error {
+	pf := NewProjectFinder()
+	// TOOD Should nested stuff also increment? If so, find project here too
+	p, err := tryGetProject(path)
+	if err != nil {
+		return err
+	}
+	err = pf.GrepEdit(p.Path)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func Main(path string) error {
+	p, err := tryGetProject(path)
+	if err != nil {
+		return err
+	}
+
+	state.GetConfig()
+
+	fmt.Println(p.Path)
 	return nil
 }
 
