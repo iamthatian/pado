@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ func NewProjectFinder() *ProjectFinder {
 }
 
 // Return selected directory instead of changing to it
-func (pf *ProjectFinder) findProject() (string, error) {
+func (pf *ProjectFinder) FindProject() (string, error) {
 	pkCmd := exec.Command("pk", "list")
 	fzfCmd := exec.Command("fzf", "--bind=ctrl-c:abort")
 
@@ -73,7 +73,7 @@ func (pf *ProjectFinder) findProject() (string, error) {
 	choice := strings.TrimSpace(string(menuOutput))
 	switch choice {
 	case "find(edit)":
-		result, err := pf.findFile(selection)
+		result, err := pf.FindFile(selection)
 		fmt.Println(result)
 		return "", err
 	case "find(show)":
@@ -82,7 +82,7 @@ func (pf *ProjectFinder) findProject() (string, error) {
 		fdCmd.Stderr = os.Stderr
 		return "", fdCmd.Run()
 	case "grep(edit)":
-		err = pf.grepEdit(selection)
+		err = pf.GrepEdit(selection)
 		return "", err
 	case "go to project":
 		return selection, nil
@@ -91,7 +91,7 @@ func (pf *ProjectFinder) findProject() (string, error) {
 	return "", nil
 }
 
-func (pf *ProjectFinder) grepEdit(projectPath string) error {
+func (pf *ProjectFinder) GrepEdit(projectPath string) error {
 	os.Remove("/tmp/rg-fzf-r")
 	os.Remove("/tmp/rg-fzf-f")
 
@@ -121,7 +121,7 @@ func (pf *ProjectFinder) grepEdit(projectPath string) error {
 	return fzfCmd.Run()
 }
 
-func (pf *ProjectFinder) findFile(projectArg string) (string, error) {
+func (pf *ProjectFinder) FindFile(projectArg string) (string, error) {
 	// Get project path using pk
 	pkCmd := exec.Command("pk", projectArg)
 	pkOutput, err := pkCmd.Output()

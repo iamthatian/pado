@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/duckonomy/parkour/cmd"
 	"github.com/duckonomy/parkour/project"
 	"github.com/duckonomy/parkour/state"
 	"github.com/urfave/cli/v3"
@@ -51,7 +52,7 @@ func main() {
 				Name:    "list",
 				Aliases: []string{"l"},
 				Usage:   "list projects",
-				Action: func(ctx context.Context, cmd *cli.Command) error {
+				Action: func(ctx context.Context, command *cli.Command) error {
 					for _, p := range ps.ListProjects() {
 						fmt.Println(p.Path)
 					}
@@ -62,10 +63,10 @@ func main() {
 				Name:    "add",
 				Aliases: []string{"a"},
 				Usage:   "add project",
-				Action: func(ctx context.Context, cmd *cli.Command) error {
+				Action: func(ctx context.Context, command *cli.Command) error {
 					p := project.Project{}
 					var projectPath string
-					if err := p.InitProject(cmd.Args().Get(0)); err != nil {
+					if err := p.InitProject(command.Args().Get(0)); err != nil {
 						log.Fatal(err)
 					}
 
@@ -87,8 +88,8 @@ func main() {
 				Name:    "remove",
 				Aliases: []string{"r"},
 				Usage:   "remove project",
-				Action: func(ctx context.Context, cmd *cli.Command) error {
-					if err := ps.RemoveProject(cmd.Args().Get(0)); err != nil {
+				Action: func(ctx context.Context, command *cli.Command) error {
+					if err := ps.RemoveProject(command.Args().Get(0)); err != nil {
 						log.Fatal(err)
 					}
 					return nil
@@ -99,8 +100,8 @@ func main() {
 				Usage:           "Execute a command with arguments",
 				SkipFlagParsing: true,
 				ArgsUsage:       "[PATH] COMMAND [ARGS...]",
-				Action: func(ctx context.Context, cmd *cli.Command) error {
-					args := cmd.Args().Slice()
+				Action: func(ctx context.Context, command *cli.Command) error {
+					args := command.Args().Slice()
 					if len(args) < 1 {
 						return cli.Exit("Command required", 1)
 					}
@@ -127,8 +128,59 @@ func main() {
 				Name:    "run",
 				Aliases: []string{"ru"},
 				Usage:   "run project command",
-				Action: func(ctx context.Context, cmd *cli.Command) error {
-					if err := ps.RunProject(cmd.Args().Get(0)); err != nil {
+				Action: func(ctx context.Context, command *cli.Command) error {
+					if err := ps.RunProject(command.Args().Get(0)); err != nil {
+						log.Fatal(err)
+					}
+					return nil
+				},
+			},
+
+			{
+				Name:  "find",
+				Usage: "find project",
+				Action: func(ctx context.Context, command *cli.Command) error {
+					pf := cmd.NewProjectFinder()
+					file, err := pf.FindProject()
+					if err != nil {
+						log.Fatal(err)
+					}
+					fmt.Println(file)
+					return nil
+				},
+			},
+			{
+				Name:  "find-file",
+				Usage: "find file",
+				Action: func(ctx context.Context, command *cli.Command) error {
+					pf := cmd.NewProjectFinder()
+					projectPath := command.Args().Get(0)
+					// TOOD Should nested stuff also increment? If so, find project here too
+					p, err := try_get_project(projectPath)
+					if err != nil {
+						log.Fatal(err)
+					}
+					file, err := pf.FindFile(p.Path)
+					if err != nil {
+						log.Fatal(err)
+					}
+					fmt.Println(file)
+					return nil
+				},
+			},
+			{
+				Name:  "grep-file",
+				Usage: "grep file",
+				Action: func(ctx context.Context, command *cli.Command) error {
+					pf := cmd.NewProjectFinder()
+					projectPath := command.Args().Get(0)
+					// TOOD Should nested stuff also increment? If so, find project here too
+					p, err := try_get_project(projectPath)
+					if err != nil {
+						log.Fatal(err)
+					}
+					err = pf.GrepEdit(p.Path)
+					if err != nil {
 						log.Fatal(err)
 					}
 					return nil
@@ -138,8 +190,8 @@ func main() {
 				Name:    "update",
 				Aliases: []string{"u"},
 				Usage:   "update project",
-				Action: func(ctx context.Context, cmd *cli.Command) error {
-					if err := ps.UpdateProject(cmd.Args().Get(0), "BuildCommand", "go run ."); err != nil {
+				Action: func(ctx context.Context, command *cli.Command) error {
+					if err := ps.UpdateProject(command.Args().Get(0), "BuildCommand", "go run ."); err != nil {
 						log.Fatal(err)
 					}
 					return nil
@@ -153,8 +205,8 @@ func main() {
 					{
 						Name:  "add",
 						Usage: "add to blacklist",
-						Action: func(ctx context.Context, cmd *cli.Command) error {
-							if err := ps.ManageBlacklist(cmd.Args().Get(0), true); err != nil {
+						Action: func(ctx context.Context, command *cli.Command) error {
+							if err := ps.ManageBlacklist(command.Args().Get(0), true); err != nil {
 								log.Fatal(err)
 							}
 							return nil
@@ -163,8 +215,8 @@ func main() {
 					{
 						Name:  "remove",
 						Usage: "remove from blacklist",
-						Action: func(ctx context.Context, cmd *cli.Command) error {
-							if err := ps.ManageBlacklist(cmd.Args().Get(0), false); err != nil {
+						Action: func(ctx context.Context, command *cli.Command) error {
+							if err := ps.ManageBlacklist(command.Args().Get(0), false); err != nil {
 								log.Fatal(err)
 							}
 							return nil
