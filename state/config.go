@@ -1,7 +1,8 @@
+// TODO
 package state
 
 import (
-	"fmt"
+	// "fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -32,10 +33,10 @@ func GetConfig() error {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	blacklist := k.Get("blacklist").([]interface{})
-	for _, j := range blacklist {
-		fmt.Println(j == "awesome")
-	}
+	// blacklist := k.Get("blacklist").([]interface{})
+	// for _, j := range blacklist {
+	// 	fmt.Println(j == "awesome")
+	// }
 
 	return nil
 }

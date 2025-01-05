@@ -12,9 +12,10 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-var ps state.ProjectState
-
 func main() {
+	var ps state.ProjectState
+	var pathFlag string
+
 	// TODO: Load Config as well and pass in to LoadState
 	if err := ps.LoadState(); err != nil {
 		log.Fatal(err)
@@ -38,6 +39,13 @@ func main() {
 	cmd := &cli.Command{
 		Name:  "pd",
 		Usage: "project root finder",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:        "path",
+				Usage:       "Project path",
+				Destination: &pathFlag,
+			},
+		},
 		Commands: []*cli.Command{
 			{
 				Name:    "list",
@@ -57,14 +65,17 @@ func main() {
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					p := project.Project{}
 					var projectPath string
-					if err := p.FindProjectRoot(cmd.Args().Get(0)); err != nil {
+					if err := p.InitProject(cmd.Args().Get(0)); err != nil {
 						log.Fatal(err)
 					}
-					if p.Path == "/" {
-						projectPath = cmd.Args().Get(1)
-					} else {
-						projectPath = p.Path
-					}
+
+					// NOTE: Get the path in argument if there is no project? (this is bad ig)
+					// if p.Path == "/" {
+					// 	projectPath = cmd.Args().Get(1)
+					// } else {
+					// 	projectPath = p.Path
+					// }
+					projectPath = p.Path
 
 					if err := ps.AddProject(projectPath); err != nil {
 						log.Fatal(err)
@@ -83,7 +94,6 @@ func main() {
 					return nil
 				},
 			},
-
 			{
 				Name:            "exec",
 				Usage:           "Execute a command with arguments",
@@ -94,24 +104,13 @@ func main() {
 					if len(args) < 1 {
 						return cli.Exit("Command required", 1)
 					}
-
-					// Get path from main command if it exists
 					var projectPath string
-					mainArgs := cmd.Root().Args().Slice()
-					if len(mainArgs) > 0 && mainArgs[0] != "exec" {
-						p, err := try_get_project(mainArgs[0])
-						if err != nil {
-							return cli.Exit(err.Error(), 1)
-						}
-						projectPath = p.Path
-					} else {
-						// No path provided, try current directory
-						p, err := try_get_project("")
-						if err != nil {
-							return cli.Exit(err.Error(), 1)
-						}
-						projectPath = p.Path
+
+					p, err := try_get_project(pathFlag)
+					if err != nil {
+						return cli.Exit(err.Error(), 1)
 					}
+					projectPath = p.Path
 
 					// Create and configure command
 					runner := exec.Command(args[0], args[1:]...)

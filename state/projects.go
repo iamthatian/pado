@@ -132,7 +132,7 @@ func (ps *ProjectState) FilterProject(searchTerm string) []project.Project {
 	return result
 }
 
-// TODO: Define UX for this
+// TODO: Eliminate redundancies
 func (ps *ProjectState) ExecProject(path string, args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("no command provided")
@@ -177,13 +177,15 @@ func (ps *ProjectState) ExecProject(path string, args []string) error {
 	return nil
 }
 
-// TODO: refactor
+// TODO: refactor (move to cli)
 func (ps *ProjectState) RunProject(path string) error {
 	normalizedPath, err := utils.CanonicalizePath(path)
 	if err != nil {
 		return err
 	}
+	fmt.Println(ps)
 	p := ps.Projects[normalizedPath]
+	fmt.Println(p)
 	if len(p.BuildCommand) == 0 {
 		fmt.Println("No command for project!")
 		fmt.Print("Enter project command: ")

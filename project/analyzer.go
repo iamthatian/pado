@@ -15,8 +15,6 @@ type ProjectAnalyzer interface {
 	AnalyzeProject(path string) error
 }
 
-// Template for Project
-// as hash? could be hash value?
 type ProjectType struct {
 	Name           string
 	ProjectFile    string
@@ -375,6 +373,7 @@ func detectProjectType(path string) (*ProjectType, error) {
 		}
 	}
 
+	// return nil, fmt.Errorf("unable to detect project type")
 	return nil, fmt.Errorf("unable to detect project type")
 }
 
@@ -564,8 +563,18 @@ func containsNodePackage(packageJsonPath string, pkg string) bool {
 	return false
 }
 
+// Categorize into hashmap and get specific project types
+// with overlapping file types to be more specific
+// if it can't but still a project type (i.e. found via vc),
+// we shouldn't end with failure
+// actually it could be better to just loop here rather than finding during search
 func PROJECT_TYPES() []ProjectType {
 	return []ProjectType{
+		// NVIM
+		{
+			Name:        "neovim",
+			ProjectFile: "init.lua",
+		},
 		// Kotlin
 		{
 			Name:         "kotlin-gradle",
