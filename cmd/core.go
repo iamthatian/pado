@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 
@@ -33,11 +32,11 @@ func List() {
 	}
 }
 
-func Add(path string) {
+func Add(path string) error {
 	p := project.Project{}
 	var projectPath string
 	if err := p.InitProject(path); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// NOTE: Get the path in argument if there is no project? (this is bad ig)
@@ -49,14 +48,17 @@ func Add(path string) {
 	projectPath = p.Path
 
 	if err := ps.AddProject(projectPath); err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
-func Remove(path string) {
+func Remove(path string) error {
 	if err := ps.RemoveProject(path); err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }
 
 func Exec(path string, args []string) error {
@@ -82,32 +84,43 @@ func Exec(path string, args []string) error {
 	return runner.Run()
 }
 
-func Run(path string) {
+func Run(path string) error {
 	if err := ps.RunProject(path); err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }
 
-func Update(path string) {
+func Update(path string) error {
 	if err := ps.UpdateProject(path, "BuildCommand", "go run ."); err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }
 
-func ListBlacklist() {
+func ListBlacklist() error {
 	blacklist, err := ps.ShowBlacklist()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	for _, path := range blacklist {
 		fmt.Println(path)
 	}
+	return nil
 }
 
-func RemoveBlacklist(path string) {
+func RemoveBlacklist(path string) error {
 	if err := ps.ManageBlacklist(path, false); err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
+}
+
+func AddBlacklist(path string) error {
+	if err := ps.ManageBlacklist(path, true); err != nil {
+		return err
+	}
+	return nil
 }
 
 // func Get() {
