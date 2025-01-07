@@ -85,6 +85,11 @@ func (pf *ProjectFinder) FindProject() (string, error) {
 		err = pf.GrepEdit(selection)
 		return "", err
 	case "go to project":
+		// return selection, nil
+		// Write to temp file for bash function to handle
+		if err := os.WriteFile("/tmp/pk_last_dir", []byte(selection), 0644); err != nil {
+			return "", err
+		}
 		return selection, nil
 	}
 
