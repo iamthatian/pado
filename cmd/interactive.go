@@ -175,9 +175,76 @@ func (pf *ProjectFinder) FindFile(projectArg string) (string, error) {
 
 	// For files, launch editor and return empty string
 	editorCmd := exec.Command(pf.editor, result)
+
+	// Fix: Attach editor to the terminal
 	editorCmd.Stdin = os.Stdin
 	editorCmd.Stdout = os.Stdout
 	editorCmd.Stderr = os.Stderr
+
 	err = editorCmd.Run()
-	return "", err
+	if err != nil {
+		return "", fmt.Errorf("failed to run editor: %w", err)
+	}
+	return "", nil
 }
+
+// func (pf *ProjectFinder) FindFile(projectArg string) (string, error) {
+// 	// Get project path using pk
+// 	pkCmd := exec.Command("pk", projectArg)
+// 	pkOutput, err := pkCmd.Output()
+// 	if err != nil {
+// 		return "", fmt.Errorf("failed to get project path: %w", err)
+// 	}
+// 	projectPath := strings.TrimSpace(string(pkOutput))
+//
+// 	// Run fd command
+// 	fdCmd := exec.Command("fd", ".", projectPath, "-tf")
+// 	fzfCmd := exec.Command("fzf")
+//
+// 	// Pipe fd output to fzf
+// 	pipe, err := fdCmd.StdoutPipe()
+// 	if err != nil {
+// 		return "", err
+// 	}
+//
+// 	fzfCmd.Stdin = pipe
+// 	fzfCmd.Stderr = os.Stderr
+//
+// 	// Start fd
+// 	if err := fdCmd.Start(); err != nil {
+// 		return "", err
+// 	}
+//
+// 	// Get fzf output
+// 	output, err := fzfCmd.Output()
+// 	if err != nil {
+// 		fdCmd.Wait() // Clean up fd command
+// 		return "", err
+// 	}
+//
+// 	if err := fdCmd.Wait(); err != nil {
+// 		return "", err
+// 	}
+//
+// 	result := strings.TrimSpace(string(output))
+// 	if result == "" {
+// 		return "", nil
+// 	}
+//
+// 	fileInfo, err := os.Stat(result)
+// 	if err != nil {
+// 		return "", err
+// 	}
+//
+// 	if fileInfo.IsDir() {
+// 		return result, nil
+// 	}
+//
+// 	// For files, launch editor and return empty string
+// 	editorCmd := exec.Command(pf.editor, result)
+// 	editorCmd.Stdin = os.Stdin
+// 	editorCmd.Stdout = os.Stdout
+// 	editorCmd.Stderr = os.Stderr
+// 	err = editorCmd.Run()
+// 	return "", err
+// }
