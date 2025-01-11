@@ -10,11 +10,12 @@ type ProjectMetadata struct {
 }
 
 type Project struct {
-	Path         string
-	Type         ProjectType
-	SimpleType   string
-	Name         string
-	Priority     int
+	Path       string
+	Type       ProjectType
+	SimpleType string
+	Name       string
+	Priority   int
+	// NOTE: Needed?
 	Parent       *Project
 	Children     []*Project
 	Dirty        bool
@@ -32,6 +33,8 @@ func (p *Project) InitProject(path string) error {
 		return err
 	}
 
+	// TODO: Create error type so that even if analyze fails
+	//       Project is still created
 	err = p.AnalyzeProject()
 	if err != nil {
 		return err

@@ -132,7 +132,7 @@ func AddBlacklist(path string) error {
 
 func FindFile(path string) error {
 	pf := NewProjectFinder()
-	// TOOD Should nested stuff also increment? If so, find project here too
+	// TODO: Should nested stuff also increment? If so, find project here too
 	p, err := tryGetProject(path)
 	if err != nil {
 		return err
@@ -157,7 +157,7 @@ func FindProject() error {
 
 func GrepFile(path string) error {
 	pf := NewProjectFinder()
-	// TOOD Should nested stuff also increment? If so, find project here too
+	// TODO: Should nested stuff also increment? If so, find project here too
 	p, err := tryGetProject(path)
 	if err != nil {
 		return err
@@ -169,6 +169,7 @@ func GrepFile(path string) error {
 	return nil
 }
 
+// TODO: Fix name
 func Main(path string) error {
 	p, err := tryGetProject(path)
 	if err != nil {
