@@ -1,4 +1,4 @@
-// TODO
+// TODO:
 package state
 
 import (
@@ -9,11 +9,18 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/duckonomy/parkour/project"
 	"github.com/duckonomy/parkour/utils"
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
 )
+
+type Config struct {
+	Blacklist []string          `koanf:"blacklist"`
+	Ignores   []string          `koanf:"ignores"`
+	Projects  []project.Project `koanf:"projects"`
+}
 
 var k = koanf.New(".")
 
@@ -44,34 +51,59 @@ func getConfigPath() (string, error) {
 	return configPath, nil
 }
 
-func checkBlacklist() {
+// TODO: Handle nil & handle value in a type
+func checkBlacklist(conf *koanf.Koanf) []string {
+	blacklist := conf.Strings("blacklist")
+	if blacklist == nil {
+		return make([]string, 0)
+	}
+	return blacklist
 }
 
-func checkIgnore() {
+func getProjects(conf *koanf.Koanf) ([]project.Project, error) {
+	var projects []project.Project
+
+	// Unmarshal the projects array into our slice
+	if err := conf.Unmarshal("projects", &projects); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal projects: %w", err)
+	}
+
+	return projects, nil
 }
 
-func checkProjects() {
+func checkIgnore(conf *koanf.Koanf) {
+	ignore := conf.Get("ignore")
+	if ignore == nil {
+		return
+	}
+
+	ignore = ignore.([]interface{})
+}
+
+// TODO: projects should mirror Project struct
+func checkProjects(conf *koanf.Koanf) {
+	projects := conf.Get("projects")
+	if projects == nil {
+		return
+	}
+
+	projects = projects.([]interface{})
 }
 
 // TODO: change this to per OS settings
 func GetConfig() error {
-	// change behavior for macos
-	// Should be $HOME/.config/
 	configPath, err := getConfigPath()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(configPath)
 	if err := k.Load(file.Provider(configPath), toml.Parser()); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	// TODO: Check if config stuff exists
-	// blacklist := k.Get("blacklist").([]interface{})
-	// for _, j := range blacklist {
-	// 	fmt.Println(j == "awesome")
-	// }
-	//
+	checkBlacklist(k)
+	checkIgnore(k)
+	checkProjects(k)
+	fmt.Println("awesome")
 	return nil
 }

@@ -176,7 +176,10 @@ func Main(path string) error {
 		return err
 	}
 
-	state.GetConfig()
+	err = state.GetConfig()
+	if err != nil {
+		return err
+	}
 
 	fmt.Println(p.Path)
 	return nil
