@@ -1,0 +1,47 @@
+name: Bug report
+description: Report a reproducible problem or regression
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What went wrong? Be as clear and specific as possible.
+      placeholder: "When running `pk tree`, it panics on directories without a Cargo.toml."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce the problem?
+      placeholder: |
+        1. Run `cargo run -- tree`
+        2. Observe the panic
+    validations:
+      required: true
+
+  - type: input
+    id: rust-version
+    attributes:
+      label: Rust version
+      placeholder: "rustc 1.80.1 (2024-09-05)"
+    validations:
+      required: false
+
+  - type: input
+    id: os
+    attributes:
+      label: OS and version
+      placeholder: "Ubuntu 22.04 / macOS 14.3"
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Panic output
+      description: Paste any relevant output or backtrace.
+      render: shell
