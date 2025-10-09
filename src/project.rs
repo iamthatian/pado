@@ -374,7 +374,6 @@ pub fn is_project_root(path: &Path) -> bool {
     contains_project_file(path).unwrap_or(false)
 }
 
-
 fn has(root: &Path, file: &str) -> bool {
     root.join(file).exists()
 }
@@ -473,10 +472,7 @@ pub fn detect_project_types(root: &Path) -> Vec<ProjectType> {
         types.push(ProjectType::Swift);
     }
 
-    if has(root, "global.json")
-        || has_pattern(root, "*.csproj")
-        || has_pattern(root, "*.sln")
-    {
+    if has(root, "global.json") || has_pattern(root, "*.csproj") || has_pattern(root, "*.sln") {
         types.push(ProjectType::Dotnet);
     }
 
@@ -521,7 +517,11 @@ pub fn detect_project_types(root: &Path) -> Vec<ProjectType> {
 
     if has_any(
         root,
-        &["CMakeLists.txt", "CMakePresets.json", "CMakeUserPresets.json"],
+        &[
+            "CMakeLists.txt",
+            "CMakePresets.json",
+            "CMakeUserPresets.json",
+        ],
     ) {
         types.push(ProjectType::CMake);
     }
@@ -676,7 +676,10 @@ pub fn detect_project_type(root: &Path) -> ProjectType {
         return ProjectType::Nix;
     }
 
-    if has_any(root, &["Dockerfile", "docker-compose.yml", "docker-compose.yaml"]) {
+    if has_any(
+        root,
+        &["Dockerfile", "docker-compose.yml", "docker-compose.yaml"],
+    ) {
         return ProjectType::Docker;
     }
 
@@ -687,7 +690,14 @@ pub fn detect_project_type(root: &Path) -> ProjectType {
     if has_any(root, &["Makefile", "makefile", "GNUMakefile"]) {
         return ProjectType::C;
     }
-    if has_any(root, &["CMakeLists.txt", "CMakePresets.json", "CMakeUserPresets.json"]) {
+    if has_any(
+        root,
+        &[
+            "CMakeLists.txt",
+            "CMakePresets.json",
+            "CMakeUserPresets.json",
+        ],
+    ) {
         return ProjectType::CMake;
     }
 
@@ -801,11 +811,16 @@ pub fn get_project_info(root: &Path) -> Result<ProjectInfo, ParkourError> {
 }
 
 pub fn discover_subprojects(root: &Path, max_depth: usize) -> Vec<PathBuf> {
-    scan_projects(root, max_depth, |p| contains_project_file(p).unwrap_or(false))
-        .unwrap_or_default()
+    scan_projects(root, max_depth, |p| {
+        contains_project_file(p).unwrap_or(false)
+    })
+    .unwrap_or_default()
 }
 
-pub fn discover_projects(search_path: &Path, max_depth: usize) -> Result<Vec<PathBuf>, ParkourError> {
+pub fn discover_projects(
+    search_path: &Path,
+    max_depth: usize,
+) -> Result<Vec<PathBuf>, ParkourError> {
     scan_projects(search_path, max_depth, |p| is_project_root(p))
 }
 
@@ -831,7 +846,10 @@ where
 
     for result in walker {
         let entry = result.map_err(|e| {
-            std::io::Error::new(std::io::ErrorKind::Other, format!("walking project tree: {}", e))
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("walking project tree: {}", e),
+            )
         })?;
         let path = entry.path();
 

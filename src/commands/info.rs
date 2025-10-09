@@ -88,10 +88,7 @@ pub fn run_info() -> Result<()> {
                     );
                 }
                 if git_stats.contributors.len() > 5 {
-                    println!(
-                        "    ... and {} more",
-                        git_stats.contributors.len() - 5
-                    );
+                    println!("    ... and {} more", git_stats.contributors.len() - 5);
                 }
             }
 
@@ -134,10 +131,18 @@ pub fn run_health() -> Result<()> {
     println!("\n🩺 Project Health Check\n");
     println!(
         "Project: {}",
-        info.root.file_name().and_then(|n| n.to_str()).unwrap_or("unknown")
+        info.root
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("unknown")
     );
-    println!("Type(s): {}\n",
-        info.project_types.iter().map(|t| t.as_str()).collect::<Vec<_>>().join(", ")
+    println!(
+        "Type(s): {}\n",
+        info.project_types
+            .iter()
+            .map(|t| t.as_str())
+            .collect::<Vec<_>>()
+            .join(", ")
     );
 
     let mut issues = Vec::new();
