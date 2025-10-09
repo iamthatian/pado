@@ -1,0 +1,6 @@
+[commands]
+build = "cargo build --release"
+test = "cargo test --all-features"
+dev = "cargo watch -x run"
+check = "cargo check && cargo clippy"
+docs = "cargo doc --open"

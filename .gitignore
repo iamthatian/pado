@@ -1,7 +1,2 @@
-backups/
-pd
-pdstate
-pp
-ppstate
-sp
-parkour
+target/
+.vscode/
