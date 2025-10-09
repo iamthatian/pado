@@ -39,6 +39,7 @@ impl ProjectList {
             .unwrap_or("unknown")
             .to_string();
 
+        // FIXME: Deprecated project types use info for project
         let project_type = detect_project_type(&path).as_str().to_string();
         let key = path.to_string_lossy().to_string();
 

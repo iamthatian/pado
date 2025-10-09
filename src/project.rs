@@ -5,21 +5,32 @@ use phf::{Set, phf_set};
 use std::path::{Path, PathBuf};
 
 pub static PROJECT_FILES: Set<&'static str> = phf_set! {
-    // VC
-    ".projectile",
+    // VCS
+    ".git",
     ".hg",
-    ".svn",
+    ".fslckout",
+    "_FOSSIL_",
     ".bzr",
+    "_darcs",
+    ".pijul",
+    ".svn",
+    ".sl",
+    ".jj",
     ".cvsignore",
     ".gitignore",
     ".gitattributes",
-    ".git",
+    "CVS",
+    "GTAGS",
+    "TAGS",
+    "cscope.out",
+
     // Rust
     "Cargo.toml",
     "Cargo.lock",
     "rust-toolchain",
     "rustfmt.toml",
     "clippy.toml",
+
     // Python
     "pyproject.toml",
     "setup.py",
@@ -35,18 +46,23 @@ pub static PROJECT_FILES: Set<&'static str> = phf_set! {
     "requirements.lock",
     "uv.lock",
     ".python-version",
-    // Node.js
+
+    // Node.js,JavaScript,TypeScript
     "package.json",
-    "pnpm-workspace.yaml",
-    "yarn.lock",
-    "pnpm-lock.yaml",
-    "bun.lockb",
     "package-lock.json",
+    "pnpm-workspace.yaml",
+    "pnpm-lock.yaml",
+    "yarn.lock",
+    "bun.lockb",
     "tsconfig.json",
     "jsconfig.json",
     "webpack.config.js",
     "vite.config.js",
     "rollup.config.js",
+    "gulpfile.js",
+    "Gruntfile.js",
+    "angular.json",
+    ".angular-cli.json",
     "eslint.config.js",
     ".eslintrc",
     ".eslintrc.js",
@@ -55,7 +71,8 @@ pub static PROJECT_FILES: Set<&'static str> = phf_set! {
     ".prettierrc.js",
     ".prettierrc.json",
     ".npmrc",
-    // Java/Kotlin/Scala
+
+    // Java,Kotlin,Scala
     "pom.xml",
     "build.gradle",
     "build.gradle.kts",
@@ -67,25 +84,38 @@ pub static PROJECT_FILES: Set<&'static str> = phf_set! {
     "mvnw",
     "mvnw.cmd",
     "build.sbt",
+    "build.sc",
+    "build.mill",
     "project/build.properties",
-    // C/C++
+    ".bloop/bloop.settings.json",
+
+    // C,C++,Build systems
     "CMakeLists.txt",
+    "CMakePresets.json",
+    "CMakeUserPresets.json",
     "Makefile",
     "makefile",
+    "GNUMakefile",
     "configure",
     "configure.ac",
+    "configure.in",
     "meson.build",
     "meson_options.txt",
     "build.ninja",
+    "SConstruct",
+    "xmake.lua",
+
     // Docker
     "Dockerfile",
     "docker-compose.yml",
     "docker-compose.yaml",
     ".dockerignore",
-    // Kubernetes/Helm
-    ".helm/",
+
+    // Kubernetes,Helm
     "Chart.yaml",
     "kustomization.yaml",
+    ".helm/",
+
     // CI/CD
     "ansible.cfg",
     "playbook.yml",
@@ -95,64 +125,120 @@ pub static PROJECT_FILES: Set<&'static str> = phf_set! {
     ".travis.yml",
     ".jenkinsfile",
     "azure-pipelines.yml",
+    "Taskfile.yml",
+
     // PHP
     "composer.json",
     "composer.lock",
     "phpunit.xml",
     "phpunit.xml.dist",
+
     // OCaml
     "dune",
     "dune-project",
     "opam",
+
     // Ruby
     "Gemfile",
     "Gemfile.lock",
     "Rakefile",
     "config.ru",
+
     // Go
     "go.mod",
     "go.sum",
+    "go.work",
+
     // Zig
     "zig.mod",
     "build.zig",
+    "build.zig.zon",
+
     // Elixir
     "mix.exs",
     "mix.lock",
+
     // Swift
     "Package.swift",
     "Package.resolved",
-    // .NET/C#
+
+    // .NET,C#
+    "global.json",
+    "nuget.config",
     "*.csproj",
     "*.sln",
     "*.fsproj",
     "*.vbproj",
-    "global.json",
-    "nuget.config",
+
     // Haskell
     "stack.yaml",
     "stack.yaml.lock",
     "*.cabal",
     "cabal.project",
+
     // Terraform
     "main.tf",
     "*.tf",
-    ".terraform/",
     ".terragrunt.hcl",
     "terraform.tfstate",
+    ".terraform/",
+
     // Lua
     "*.rockspec",
+
     // Nix
     "flake.lock",
     "flake.nix",
     "default.nix",
     "shell.nix",
-    // Other
+
+    // Racket
+    "info.rkt",
+
+    // Dart
+    "pubspec.yaml",
+
+    // Elm
+    "elm.json",
+
+    // Julia
+    "Project.toml",
+
+    // Emacs
+    "Cask",
+    "Eask",
+    "Eldev",
+    "Eldev-local",
+
+    // R
+    "DESCRIPTION",
+
+    // Crystal
+    "shard.yml",
+
+    // Clojure
+    "project.clj",
+    ".midje.clj",
+    "build.boot",
+    "deps.edn",
+
+    // Rails,Grails
+    "application.yml",
+
+    // Debian packaging
+    "debian/control",
+
+    // Bazel
+    "WORKSPACE",
+
+    // Miscellaneous,Editors,Environments
     ".venv/",
     "env/",
     ".vscode/",
     ".idea/",
     ".editorconfig",
     ".code-workspace",
+    ".projectile",
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -176,6 +262,21 @@ pub enum ProjectType {
     Nix,
     Docker,
     Git,
+    C,
+    CPP,
+    CMake,
+    Kotlin,
+    Bazel,
+    Clojure,
+    Dart,
+    Elm,
+    Julia,
+    Crystal,
+    R,
+    OCamlDune,
+    Rails,
+    Debian,
+    Emacs,
     Unknown,
 }
 
@@ -195,21 +296,39 @@ impl ProjectType {
             ProjectType::Dotnet => "dotnet",
             ProjectType::Haskell => "haskell",
             ProjectType::OCaml => "ocaml",
+            ProjectType::OCamlDune => "ocaml-dune",
             ProjectType::Zig => "zig",
             ProjectType::Terraform => "terraform",
             ProjectType::Lua => "lua",
             ProjectType::Nix => "nix",
             ProjectType::Docker => "docker",
             ProjectType::Git => "git",
+            ProjectType::C => "c",
+            ProjectType::CPP => "cpp",
+            ProjectType::CMake => "cmake",
+            ProjectType::Kotlin => "kotlin",
+            ProjectType::Bazel => "bazel",
+            ProjectType::Clojure => "clojure",
+            ProjectType::Dart => "dart",
+            ProjectType::Elm => "elm",
+            ProjectType::Julia => "julia",
+            ProjectType::Crystal => "crystal",
+            ProjectType::R => "r",
+            ProjectType::Rails => "rails",
+            ProjectType::Debian => "debian",
+            ProjectType::Emacs => "emacs",
             ProjectType::Unknown => "unknown",
         }
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct ProjectInfo {
     pub root: PathBuf,
-    pub project_type: ProjectType,
+    pub project_types: Vec<ProjectType>,
     pub file_count: usize,
+    pub monorepo: bool,
+    pub subprojects: Vec<PathBuf>,
 }
 
 pub fn contains_project_file(dir: &Path) -> std::io::Result<bool> {
@@ -255,151 +374,351 @@ pub fn is_project_root(path: &Path) -> bool {
     contains_project_file(path).unwrap_or(false)
 }
 
+
+fn has(root: &Path, file: &str) -> bool {
+    root.join(file).exists()
+}
+
+fn has_any(root: &Path, files: &[&str]) -> bool {
+    files.iter().any(|f| has(root, f))
+}
+
+fn has_any_dir(root: &Path, dirs: &[&str]) -> bool {
+    dirs.iter().any(|d| root.join(d).is_dir())
+}
+
+fn has_pattern(dir: &Path, pattern: &str) -> bool {
+    std::fs::read_dir(dir)
+        .ok()
+        .and_then(|entries| {
+            for e in entries.flatten() {
+                if let Some(name) = e.file_name().to_str() {
+                    if glob_match(pattern, name) {
+                        return Some(true);
+                    }
+                }
+            }
+            None
+        })
+        .unwrap_or(false)
+}
+
+pub fn detect_project_types(root: &Path) -> Vec<ProjectType> {
+    let mut types = Vec::new();
+
+    if has(root, "Cargo.toml") {
+        types.push(ProjectType::Rust);
+    }
+
+    if has(root, "package.json") || has_any(root, &["pnpm-workspace.yaml", "bun.lockb"]) {
+        types.push(ProjectType::Node);
+    }
+
+    if has_any(
+        root,
+        &[
+            "uv.lock",
+            "pyproject.toml",
+            "setup.py",
+            "requirements.txt",
+            "Pipfile",
+            "Pipfile.lock",
+        ],
+    ) {
+        types.push(ProjectType::Python);
+    }
+
+    if has(root, "go.mod") {
+        types.push(ProjectType::Go);
+    }
+
+    if has(root, "pom.xml")
+        || has_any(
+            root,
+            &[
+                "build.gradle",
+                "build.gradle.kts",
+                "settings.gradle",
+                "settings.gradle.kts",
+            ],
+        )
+    {
+        types.push(ProjectType::Java);
+    }
+
+    if has(root, "build.sbt") {
+        types.push(ProjectType::Scala);
+    }
+
+    if has(root, ".bloop/bloop.settings.json") {
+        types.push(ProjectType::Kotlin);
+    }
+
+    if has(root, "Gemfile") {
+        if has(root, "application.yml") {
+            types.push(ProjectType::Rails);
+        }
+        types.push(ProjectType::Ruby);
+    }
+
+    if has(root, "composer.json") {
+        types.push(ProjectType::PHP);
+    }
+
+    if has(root, "mix.exs") {
+        types.push(ProjectType::Elixir);
+    }
+
+    if has(root, "Package.swift") {
+        types.push(ProjectType::Swift);
+    }
+
+    if has(root, "global.json")
+        || has_pattern(root, "*.csproj")
+        || has_pattern(root, "*.sln")
+    {
+        types.push(ProjectType::Dotnet);
+    }
+
+    if has(root, "stack.yaml") || has_pattern(root, "*.cabal") {
+        types.push(ProjectType::Haskell);
+    }
+
+    if has_any(root, &["dune", "dune-project", "opam"]) {
+        types.push(ProjectType::OCaml);
+    }
+
+    if has(root, "build.zig") {
+        types.push(ProjectType::Zig);
+    }
+
+    if has_pattern(root, "*.tf") || has(root, ".terraform") {
+        types.push(ProjectType::Terraform);
+    }
+
+    if has_pattern(root, "*.rockspec") {
+        types.push(ProjectType::Lua);
+    }
+
+    if has_any(root, &["flake.nix", "default.nix", "shell.nix"]) {
+        types.push(ProjectType::Nix);
+    }
+
+    if has_any(
+        root,
+        &["Dockerfile", "docker-compose.yml", "docker-compose.yaml"],
+    ) {
+        types.push(ProjectType::Docker);
+    }
+
+    if has(root, "WORKSPACE") {
+        types.push(ProjectType::Bazel);
+    }
+
+    if has_any(root, &["Makefile", "makefile", "GNUMakefile"]) {
+        types.push(ProjectType::C);
+    }
+
+    if has_any(
+        root,
+        &["CMakeLists.txt", "CMakePresets.json", "CMakeUserPresets.json"],
+    ) {
+        types.push(ProjectType::CMake);
+    }
+
+    if has_any(root, &["project.clj", "deps.edn", "build.boot"]) {
+        types.push(ProjectType::Clojure);
+    }
+
+    if has(root, "pubspec.yaml") {
+        types.push(ProjectType::Dart);
+    }
+
+    if has(root, "elm.json") {
+        types.push(ProjectType::Elm);
+    }
+
+    if has(root, "Project.toml") {
+        types.push(ProjectType::Julia);
+    }
+
+    if has(root, "shard.yml") {
+        types.push(ProjectType::Crystal);
+    }
+
+    if has(root, "DESCRIPTION") {
+        types.push(ProjectType::R);
+    }
+
+    if has(root, "debian/control") {
+        types.push(ProjectType::Debian);
+    }
+
+    if has_any(root, &["Cask", "Eask", "Eldev", "Eldev-local"]) {
+        types.push(ProjectType::Emacs);
+    }
+
+    if has(root, ".git") {
+        types.push(ProjectType::Git);
+    }
+
+    types
+}
+
+pub fn detect_monorepo(root: &Path) -> bool {
+    has_any(
+        root,
+        &[
+            "pnpm-workspace.yaml",
+            "lerna.json",
+            "turbo.json",
+            "nx.json",
+            "Cargo.toml",
+            "WORKSPACE",
+            "go.work",
+            "flake.nix",
+        ],
+    ) && has_any_dir(root, &["packages", "apps", "crates", "modules"])
+}
+
+// TODO: Deprecate and make use of detect_project_types
 pub fn detect_project_type(root: &Path) -> ProjectType {
-    if root.join("Cargo.toml").exists() {
+    if has(root, "Cargo.toml") {
         return ProjectType::Rust;
     }
 
-    if root.join("package.json").exists() {
+    if has(root, "package.json") || has_any(root, &["pnpm-workspace.yaml", "bun.lockb"]) {
         return ProjectType::Node;
     }
 
-    if root.join("uv.lock").exists()
-        || root.join("pyproject.toml").exists()
-        || root.join("setup.py").exists()
-        || root.join("requirements.txt").exists()
-    {
+    if has_any(
+        root,
+        &[
+            "uv.lock",
+            "pyproject.toml",
+            "setup.py",
+            "requirements.txt",
+            "Pipfile",
+            "Pipfile.lock",
+        ],
+    ) {
         return ProjectType::Python;
     }
 
-    if root.join("go.mod").exists() {
+    if has(root, "go.mod") {
         return ProjectType::Go;
     }
 
-    if root.join("pom.xml").exists()
-        || root.join("build.gradle").exists()
-        || root.join("build.gradle.kts").exists()
+    if has(root, "pom.xml")
+        || has_any(
+            root,
+            &[
+                "build.gradle",
+                "build.gradle.kts",
+                "settings.gradle",
+                "settings.gradle.kts",
+            ],
+        )
     {
         return ProjectType::Java;
     }
-
-    if root.join("build.sbt").exists() {
+    if has(root, "build.sbt") {
         return ProjectType::Scala;
     }
+    if has(root, ".bloop/bloop.settings.json") {
+        return ProjectType::Kotlin;
+    }
 
-    if root.join("Gemfile").exists() {
+    if has(root, "Gemfile") {
+        if has(root, "application.yml") {
+            return ProjectType::Rails;
+        }
         return ProjectType::Ruby;
     }
 
-    if root.join("composer.json").exists() {
+    if has(root, "composer.json") {
         return ProjectType::PHP;
     }
 
-    if root.join("mix.exs").exists() {
+    if has(root, "mix.exs") {
         return ProjectType::Elixir;
     }
 
-    if root.join("Package.swift").exists() {
+    if has(root, "Package.swift") {
         return ProjectType::Swift;
     }
 
-    if std::fs::read_dir(root)
-        .ok()
-        .map(|entries| {
-            entries.filter_map(|e| e.ok()).any(|entry| {
-                entry
-                    .file_name()
-                    .to_str()
-                    .map(|name| {
-                        name.ends_with(".csproj")
-                            || name.ends_with(".fsproj")
-                            || name.ends_with(".sln")
-                    })
-                    .unwrap_or(false)
-            })
-        })
-        .unwrap_or(false)
-        || root.join("global.json").exists()
-    {
+    if has(root, "global.json") || has_pattern(root, "*.csproj") || has_pattern(root, "*.sln") {
         return ProjectType::Dotnet;
     }
 
-    if root.join("stack.yaml").exists()
-        || std::fs::read_dir(root)
-            .ok()
-            .map(|entries| {
-                entries.filter_map(|e| e.ok()).any(|entry| {
-                    entry
-                        .file_name()
-                        .to_str()
-                        .map(|name| name.ends_with(".cabal"))
-                        .unwrap_or(false)
-                })
-            })
-            .unwrap_or(false)
-    {
+    if has(root, "stack.yaml") || has_pattern(root, "*.cabal") {
         return ProjectType::Haskell;
     }
 
-    if root.join("dune").exists()
-        || root.join("dune-project").exists()
-        || root.join("opam").exists()
-    {
+    if has_any(root, &["dune", "dune-project", "opam"]) {
         return ProjectType::OCaml;
     }
 
-    if root.join("build.zig").exists() {
+    if has(root, "build.zig") {
         return ProjectType::Zig;
     }
 
-    if std::fs::read_dir(root)
-        .ok()
-        .map(|entries| {
-            entries.filter_map(|e| e.ok()).any(|entry| {
-                entry
-                    .file_name()
-                    .to_str()
-                    .map(|name| name.ends_with(".tf"))
-                    .unwrap_or(false)
-            })
-        })
-        .unwrap_or(false)
-        || root.join(".terraform").exists()
-    {
+    if has_pattern(root, "*.tf") || has(root, ".terraform") {
         return ProjectType::Terraform;
     }
 
-    if std::fs::read_dir(root)
-        .ok()
-        .map(|entries| {
-            entries.filter_map(|e| e.ok()).any(|entry| {
-                entry
-                    .file_name()
-                    .to_str()
-                    .map(|name| name.ends_with(".rockspec"))
-                    .unwrap_or(false)
-            })
-        })
-        .unwrap_or(false)
-    {
+    if has_pattern(root, "*.rockspec") {
         return ProjectType::Lua;
     }
 
-    if root.join("flake.nix").exists()
-        || root.join("default.nix").exists()
-        || root.join("shell.nix").exists()
-    {
+    if has_any(root, &["flake.nix", "default.nix", "shell.nix"]) {
         return ProjectType::Nix;
     }
 
-    if root.join("Dockerfile").exists()
-        || root.join("docker-compose.yml").exists()
-        || root.join("docker-compose.yaml").exists()
-    {
+    if has_any(root, &["Dockerfile", "docker-compose.yml", "docker-compose.yaml"]) {
         return ProjectType::Docker;
     }
 
-    if root.join(".git").exists() {
+    if has(root, "WORKSPACE") {
+        return ProjectType::Bazel;
+    }
+
+    if has_any(root, &["Makefile", "makefile", "GNUMakefile"]) {
+        return ProjectType::C;
+    }
+    if has_any(root, &["CMakeLists.txt", "CMakePresets.json", "CMakeUserPresets.json"]) {
+        return ProjectType::CMake;
+    }
+
+    if has_any(root, &["project.clj", "deps.edn", "build.boot"]) {
+        return ProjectType::Clojure;
+    }
+
+    if has(root, "pubspec.yaml") {
+        return ProjectType::Dart;
+    }
+    if has(root, "elm.json") {
+        return ProjectType::Elm;
+    }
+    if has(root, "Project.toml") {
+        return ProjectType::Julia;
+    }
+    if has(root, "shard.yml") {
+        return ProjectType::Crystal;
+    }
+    if has(root, "DESCRIPTION") {
+        return ProjectType::R;
+    }
+    if has(root, "debian/control") {
+        return ProjectType::Debian;
+    }
+
+    if has_any(root, &["Cask", "Eask", "Eldev", "Eldev-local"]) {
+        return ProjectType::Emacs;
+    }
+
+    if has(root, ".git") {
         return ProjectType::Git;
     }
 
@@ -461,57 +780,69 @@ pub fn glob_match(pattern: &str, text: &str) -> bool {
 }
 
 pub fn get_project_info(root: &Path) -> Result<ProjectInfo, ParkourError> {
-    let project_type = detect_project_type(root);
+    let project_types = detect_project_types(root);
+    let monorepo = detect_monorepo(root);
+    let subprojects = if monorepo {
+        discover_subprojects(root, 3)
+    } else {
+        Vec::new()
+    };
+
     let files = list_project_files(root, None)?;
     let file_count = files.len();
 
     Ok(ProjectInfo {
         root: root.to_path_buf(),
-        project_type,
+        project_types,
         file_count,
+        monorepo,
+        subprojects,
     })
 }
 
-pub fn discover_projects(
-    search_path: &Path,
-    max_depth: usize,
-) -> Result<Vec<PathBuf>, ParkourError> {
-    use std::collections::HashSet;
-    use walkdir::WalkDir;
+pub fn discover_subprojects(root: &Path, max_depth: usize) -> Vec<PathBuf> {
+    scan_projects(root, max_depth, |p| contains_project_file(p).unwrap_or(false))
+        .unwrap_or_default()
+}
 
-    let mut projects = Vec::new();
+pub fn discover_projects(search_path: &Path, max_depth: usize) -> Result<Vec<PathBuf>, ParkourError> {
+    scan_projects(search_path, max_depth, |p| is_project_root(p))
+}
+
+fn scan_projects<F>(
+    root: &Path,
+    max_depth: usize,
+    mut predicate: F,
+) -> Result<Vec<PathBuf>, ParkourError>
+where
+    F: FnMut(&Path) -> bool,
+{
+    use std::collections::HashSet;
+
+    let mut found = Vec::new();
     let mut visited = HashSet::new();
 
-    for entry in WalkDir::new(search_path)
-        .max_depth(max_depth)
-        .into_iter()
-        .filter_entry(|e| {
-            let path = e.path();
-            if path == search_path || !path.starts_with(search_path) {
-                return true;
-            }
-            if let Some(name) = e.file_name().to_str() {
-                !name.starts_with('.')
-            } else {
-                true
-            }
-        })
-    {
-        let entry = entry.map_err(|e| {
-            std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("discovering projects: {}", e),
-            )
+    let walker = WalkBuilder::new(root)
+        .hidden(true)
+        .ignore(true)
+        .git_ignore(true)
+        .max_depth(Some(max_depth))
+        .build();
+
+    for result in walker {
+        let entry = result.map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("walking project tree: {}", e))
         })?;
         let path = entry.path();
 
-        if path.is_dir() && is_project_root(path) {
-            // NO duplicates
-            if visited.insert(path.to_path_buf()) {
-                projects.push(path.to_path_buf());
-            }
+        if path == root {
+            continue;
+        }
+
+        if path.is_dir() && predicate(path) && visited.insert(path.to_path_buf()) {
+            found.push(path.to_path_buf());
         }
     }
 
-    Ok(projects)
+    Ok(found)
 }

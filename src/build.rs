@@ -1,5 +1,6 @@
 use std::path::Path;
 
+// TODO: Add behavior for extended project types
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BuildSystem {
     Cargo,
