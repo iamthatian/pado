@@ -85,10 +85,15 @@ pub fn get_git_stats(root: &Path) -> Result<Option<GitStats>, ParkourError> {
         Ok(r) => r,
         Err(e) => {
             let err_str = e.to_string();
-            if err_str.contains("could not find repository") || err_str.contains("not a git repository") {
+            if err_str.contains("could not find repository")
+                || err_str.contains("not a git repository")
+            {
                 return Ok(None);
             }
-            return Err(ParkourError::GitError(format!("failed to open repository: {}", e)));
+            return Err(ParkourError::GitError(format!(
+                "failed to open repository: {}",
+                e
+            )));
         }
     };
 
@@ -96,7 +101,8 @@ pub fn get_git_stats(root: &Path) -> Result<Option<GitStats>, ParkourError> {
     let mut total_commits = 0;
     let mut last_commit_time: Option<i64> = None;
 
-    let head = repo.head()
+    let head = repo
+        .head()
         .map_err(|e| ParkourError::GitError(format!("failed to get HEAD: {}", e)))?;
 
     if let Some(head_ref) = head.try_into_referent() {
@@ -104,7 +110,8 @@ pub fn get_git_stats(root: &Path) -> Result<Option<GitStats>, ParkourError> {
 
         let platform = repo.rev_walk([head_id]);
 
-        let iter = platform.all()
+        let iter = platform
+            .all()
             .map_err(|e| ParkourError::GitError(format!("failed to walk commits: {}", e)))?;
 
         for commit_result in iter {

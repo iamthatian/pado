@@ -3,11 +3,9 @@ use std::env;
 use std::process::{Command, exit};
 
 pub fn run_info() -> Result<()> {
-    let cwd = env::current_dir()
-        .context("failed to get current directory")?;
+    let cwd = env::current_dir().context("failed to get current directory")?;
 
-    let root = parkour::find_project_root(&cwd)
-        .context("no project root found")?;
+    let root = parkour::find_project_root(&cwd).context("no project root found")?;
 
     let project_name = root
         .file_name()
@@ -39,11 +37,9 @@ pub fn run_info() -> Result<()> {
                     );
                 }
 
-                println!("\nTotal: {} lines ({} code, {} comments, {} blanks)",
-                    stats.total_lines,
-                    stats.total_code,
-                    stats.total_comments,
-                    stats.total_blanks
+                println!(
+                    "\nTotal: {} lines ({} code, {} comments, {} blanks)",
+                    stats.total_lines, stats.total_code, stats.total_comments, stats.total_blanks
                 );
             }
         }
@@ -61,7 +57,10 @@ pub fn run_info() -> Result<()> {
                 println!("  Contributors: {}", git_stats.contributors.len());
 
                 for contributor in git_stats.contributors.iter().take(5) {
-                    println!("    - {} ({} commits)", contributor.name, contributor.commits);
+                    println!(
+                        "    - {} ({} commits)",
+                        contributor.name, contributor.commits
+                    );
                 }
 
                 if git_stats.contributors.len() > 5 {
@@ -86,11 +85,9 @@ pub fn run_info() -> Result<()> {
 }
 
 pub fn run_type() -> Result<()> {
-    let cwd = env::current_dir()
-        .context("failed to get current directory")?;
+    let cwd = env::current_dir().context("failed to get current directory")?;
 
-    let root = parkour::find_project_root(&cwd)
-        .context("no project root found")?;
+    let root = parkour::find_project_root(&cwd).context("no project root found")?;
 
     let project_type = parkour::detect_project_type(&root);
     println!("{}", project_type.as_str());
@@ -98,16 +95,19 @@ pub fn run_type() -> Result<()> {
 }
 
 pub fn run_health() -> Result<()> {
-    let cwd = env::current_dir()
-        .context("failed to get current directory")?;
+    let cwd = env::current_dir().context("failed to get current directory")?;
 
-    let root = parkour::find_project_root(&cwd)
-        .context("no project root found")?;
+    let root = parkour::find_project_root(&cwd).context("no project root found")?;
 
     let project_type = parkour::detect_project_type(&root);
 
     println!("\nProject Health Check\n");
-    println!("Project: {}", root.file_name().and_then(|n| n.to_str()).unwrap_or("unknown"));
+    println!(
+        "Project: {}",
+        root.file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("unknown")
+    );
     println!("Type: {}\n", project_type.as_str());
 
     let mut issues = Vec::new();
@@ -189,11 +189,9 @@ pub fn run_health() -> Result<()> {
 }
 
 pub fn run_deps() -> Result<()> {
-    let cwd = env::current_dir()
-        .context("failed to get current directory")?;
+    let cwd = env::current_dir().context("failed to get current directory")?;
 
-    let root = parkour::find_project_root(&cwd)
-        .context("no project root found")?;
+    let root = parkour::find_project_root(&cwd).context("no project root found")?;
 
     let project_type = parkour::detect_project_type(&root);
 
@@ -250,10 +248,8 @@ pub fn run_deps() -> Result<()> {
 }
 
 pub fn run_outdated() -> Result<()> {
-    let cwd = env::current_dir()
-        .context("failed to get current directory")?;
-    let root = parkour::find_project_root(&cwd)
-        .context("no project root found")?;
+    let cwd = env::current_dir().context("failed to get current directory")?;
+    let root = parkour::find_project_root(&cwd).context("no project root found")?;
 
     let build_system = parkour::BuildSystem::detect(&root);
 

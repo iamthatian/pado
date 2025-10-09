@@ -2,8 +2,7 @@ use anyhow::{Context, Result};
 use std::env;
 
 pub fn run_init() -> Result<()> {
-    let shell_path = env::var("SHELL")
-        .context("$SHELL environment variable not set")?;
+    let shell_path = env::var("SHELL").context("$SHELL environment variable not set")?;
 
     let shell_name = shell_path
         .split('/')
@@ -22,11 +21,9 @@ pub fn run_init() -> Result<()> {
 }
 
 pub fn run_cd() -> Result<()> {
-    let cwd = env::current_dir()
-        .context("failed to get current directory")?;
+    let cwd = env::current_dir().context("failed to get current directory")?;
 
-    let root = parkour::find_project_root(&cwd)
-        .context("no project root found")?;
+    let root = parkour::find_project_root(&cwd).context("no project root found")?;
 
     let mut list = parkour::load_project_list().unwrap_or_else(|_| parkour::ProjectList::new());
     let _ = list.add_project(root.clone());
@@ -39,11 +36,11 @@ pub fn run_cd() -> Result<()> {
 
 pub fn run_prompt() -> Result<()> {
     let config = parkour::GlobalConfig::load().unwrap_or_default();
-    let cwd = env::current_dir()
-        .context("failed to get current directory")?;
+    let cwd = env::current_dir().context("failed to get current directory")?;
 
     if let Ok(root) = parkour::find_project_root(&cwd) {
-        let name = root.file_name()
+        let name = root
+            .file_name()
             .and_then(|n| n.to_str())
             .unwrap_or("unknown");
         let project_type = parkour::detect_project_type(&root);

@@ -1,7 +1,7 @@
 use crate::config::GlobalConfig;
 use crate::error::ParkourError;
 use ignore::WalkBuilder;
-use phf::{phf_set, Set};
+use phf::{Set, phf_set};
 use std::path::{Path, PathBuf};
 
 pub static PROJECT_FILES: Set<&'static str> = phf_set! {
@@ -306,19 +306,17 @@ pub fn detect_project_type(root: &Path) -> ProjectType {
     if std::fs::read_dir(root)
         .ok()
         .map(|entries| {
-            entries
-                .filter_map(|e| e.ok())
-                .any(|entry| {
-                    entry
-                        .file_name()
-                        .to_str()
-                        .map(|name| {
-                            name.ends_with(".csproj")
-                                || name.ends_with(".fsproj")
-                                || name.ends_with(".sln")
-                        })
-                        .unwrap_or(false)
-                })
+            entries.filter_map(|e| e.ok()).any(|entry| {
+                entry
+                    .file_name()
+                    .to_str()
+                    .map(|name| {
+                        name.ends_with(".csproj")
+                            || name.ends_with(".fsproj")
+                            || name.ends_with(".sln")
+                    })
+                    .unwrap_or(false)
+            })
         })
         .unwrap_or(false)
         || root.join("global.json").exists()
@@ -330,22 +328,23 @@ pub fn detect_project_type(root: &Path) -> ProjectType {
         || std::fs::read_dir(root)
             .ok()
             .map(|entries| {
-                entries
-                    .filter_map(|e| e.ok())
-                    .any(|entry| {
-                        entry
-                            .file_name()
-                            .to_str()
-                            .map(|name| name.ends_with(".cabal"))
-                            .unwrap_or(false)
-                    })
+                entries.filter_map(|e| e.ok()).any(|entry| {
+                    entry
+                        .file_name()
+                        .to_str()
+                        .map(|name| name.ends_with(".cabal"))
+                        .unwrap_or(false)
+                })
             })
             .unwrap_or(false)
     {
         return ProjectType::Haskell;
     }
 
-    if root.join("dune").exists() || root.join("dune-project").exists() || root.join("opam").exists() {
+    if root.join("dune").exists()
+        || root.join("dune-project").exists()
+        || root.join("opam").exists()
+    {
         return ProjectType::OCaml;
     }
 
@@ -356,15 +355,13 @@ pub fn detect_project_type(root: &Path) -> ProjectType {
     if std::fs::read_dir(root)
         .ok()
         .map(|entries| {
-            entries
-                .filter_map(|e| e.ok())
-                .any(|entry| {
-                    entry
-                        .file_name()
-                        .to_str()
-                        .map(|name| name.ends_with(".tf"))
-                        .unwrap_or(false)
-                })
+            entries.filter_map(|e| e.ok()).any(|entry| {
+                entry
+                    .file_name()
+                    .to_str()
+                    .map(|name| name.ends_with(".tf"))
+                    .unwrap_or(false)
+            })
         })
         .unwrap_or(false)
         || root.join(".terraform").exists()
@@ -375,15 +372,13 @@ pub fn detect_project_type(root: &Path) -> ProjectType {
     if std::fs::read_dir(root)
         .ok()
         .map(|entries| {
-            entries
-                .filter_map(|e| e.ok())
-                .any(|entry| {
-                    entry
-                        .file_name()
-                        .to_str()
-                        .map(|name| name.ends_with(".rockspec"))
-                        .unwrap_or(false)
-                })
+            entries.filter_map(|e| e.ok()).any(|entry| {
+                entry
+                    .file_name()
+                    .to_str()
+                    .map(|name| name.ends_with(".rockspec"))
+                    .unwrap_or(false)
+            })
         })
         .unwrap_or(false)
     {
@@ -423,8 +418,12 @@ pub fn list_project_files(
         .git_ignore(true)
         .build()
     {
-        let entry = result
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("walking project files: {}", e)))?;
+        let entry = result.map_err(|e| {
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("walking project files: {}", e),
+            )
+        })?;
 
         if entry.file_type().map(|ft| ft.is_file()).unwrap_or(false) {
             let path = entry.path().to_path_buf();
@@ -498,8 +497,12 @@ pub fn discover_projects(
             }
         })
     {
-        let entry = entry
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, format!("discovering projects: {}", e)))?;
+        let entry = entry.map_err(|e| {
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("discovering projects: {}", e),
+            )
+        })?;
         let path = entry.path();
 
         if path.is_dir() && is_project_root(path) {

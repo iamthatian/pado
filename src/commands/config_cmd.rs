@@ -3,8 +3,7 @@ use std::env;
 use std::process::{Command, exit};
 
 pub fn run_config(path: bool, edit: bool, show: bool) -> Result<()> {
-    let config_path = parkour::get_global_config_path()
-        .context("failed to get config path")?;
+    let config_path = parkour::get_global_config_path().context("failed to get config path")?;
 
     if path {
         println!("{}", config_path.display());
@@ -22,13 +21,15 @@ pub fn run_config(path: bool, edit: bool, show: bool) -> Result<()> {
         let status = Command::new(&editor)
             .arg(&config_path)
             .status()
-            .context(format!("failed to execute {} - is $EDITOR set correctly?", editor))?;
+            .context(format!(
+                "failed to execute {} - is $EDITOR set correctly?",
+                editor
+            ))?;
 
         exit(status.code().unwrap_or(1));
     } else if show {
         let config = parkour::GlobalConfig::load().unwrap_or_default();
-        let config_toml = toml::to_string_pretty(&config)
-            .context("failed to serialize config")?;
+        let config_toml = toml::to_string_pretty(&config).context("failed to serialize config")?;
         println!("{}", config_toml);
     } else {
         if config_path.exists() {

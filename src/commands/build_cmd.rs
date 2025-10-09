@@ -3,11 +3,9 @@ use std::env;
 use std::process::{Command, exit};
 
 pub fn run_build() -> Result<()> {
-    let cwd = env::current_dir()
-        .context("failed to get current directory")?;
+    let cwd = env::current_dir().context("failed to get current directory")?;
 
-    let root = parkour::find_project_root(&cwd)
-        .context("no project root found")?;
+    let root = parkour::find_project_root(&cwd).context("no project root found")?;
 
     if let Ok(Some(config)) = parkour::ProjectConfig::load(&root) {
         if let Some(cmd) = config.get_command("build") {
@@ -40,11 +38,9 @@ pub fn run_build() -> Result<()> {
 }
 
 pub fn run_test() -> Result<()> {
-    let cwd = env::current_dir()
-        .context("failed to get current directory")?;
+    let cwd = env::current_dir().context("failed to get current directory")?;
 
-    let root = parkour::find_project_root(&cwd)
-        .context("no project root found")?;
+    let root = parkour::find_project_root(&cwd).context("no project root found")?;
 
     if let Ok(Some(config)) = parkour::ProjectConfig::load(&root) {
         if let Some(cmd) = config.get_command("test") {
@@ -77,11 +73,9 @@ pub fn run_test() -> Result<()> {
 }
 
 pub fn run_run() -> Result<()> {
-    let cwd = env::current_dir()
-        .context("failed to get current directory")?;
+    let cwd = env::current_dir().context("failed to get current directory")?;
 
-    let root = parkour::find_project_root(&cwd)
-        .context("no project root found")?;
+    let root = parkour::find_project_root(&cwd).context("no project root found")?;
 
     if let Ok(Some(config)) = parkour::ProjectConfig::load(&root) {
         if let Some(cmd) = config.get_command("run") {
@@ -114,11 +108,9 @@ pub fn run_run() -> Result<()> {
 }
 
 pub fn run_exec(command: String) -> Result<()> {
-    let cwd = env::current_dir()
-        .context("failed to get current directory")?;
+    let cwd = env::current_dir().context("failed to get current directory")?;
 
-    let root = parkour::find_project_root(&cwd)
-        .context("no project root found")?;
+    let root = parkour::find_project_root(&cwd).context("no project root found")?;
 
     let config = parkour::ProjectConfig::load(&root)
         .context("failed to load .pk.toml")?
@@ -145,8 +137,7 @@ pub fn run_exec_all(command: Vec<String>, tag: Option<String>) -> Result<()> {
         exit(1);
     }
 
-    let list = parkour::load_project_list()
-        .context("failed to load project list")?;
+    let list = parkour::load_project_list().context("failed to load project list")?;
 
     let projects = list.get_projects();
     let cmd = command.join(" ");

@@ -5,16 +5,13 @@ use std::process::exit;
 
 pub fn run_add(path: Option<PathBuf>) -> Result<()> {
     let config = parkour::GlobalConfig::load().unwrap_or_default();
-    let mut list = parkour::load_project_list()
-        .context("failed to load project list")?;
+    let mut list = parkour::load_project_list().context("failed to load project list")?;
 
     let project_path = if let Some(p) = path {
         p
     } else {
-        let cwd = env::current_dir()
-            .context("failed to get current directory")?;
-        parkour::find_project_root(&cwd)
-            .context("no project root found")?
+        let cwd = env::current_dir().context("failed to get current directory")?;
+        parkour::find_project_root(&cwd).context("no project root found")?
     };
 
     list.add_project(project_path.clone())
@@ -24,31 +21,30 @@ pub fn run_add(path: Option<PathBuf>) -> Result<()> {
         list.set_star(&project_path, true);
     }
 
-    parkour::save_project_list(&list)
-        .context("failed to save project list")?;
+    parkour::save_project_list(&list).context("failed to save project list")?;
 
-    let star_msg = if config.behavior.auto_star_on_add { " ★" } else { "" };
+    let star_msg = if config.behavior.auto_star_on_add {
+        " ★"
+    } else {
+        ""
+    };
     println!("Added project:{} {}", star_msg, project_path.display());
     Ok(())
 }
 
 pub fn run_star(path: Option<PathBuf>, unstar: bool) -> Result<()> {
-    let mut list = parkour::load_project_list()
-        .context("failed to load project list")?;
+    let mut list = parkour::load_project_list().context("failed to load project list")?;
 
     let project_path = if let Some(p) = path {
         p
     } else {
-        let cwd = env::current_dir()
-            .context("failed to get current directory")?;
-        parkour::find_project_root(&cwd)
-            .context("no project root found")?
+        let cwd = env::current_dir().context("failed to get current directory")?;
+        parkour::find_project_root(&cwd).context("no project root found")?
     };
 
     if unstar {
         if list.set_star(&project_path, false) {
-            parkour::save_project_list(&list)
-                .context("failed to save project list")?;
+            parkour::save_project_list(&list).context("failed to save project list")?;
             println!("Unstarred project: {}", project_path.display());
         } else {
             eprintln!("Project not found in list: {}", project_path.display());
@@ -58,8 +54,7 @@ pub fn run_star(path: Option<PathBuf>, unstar: bool) -> Result<()> {
         let _ = list.add_project(project_path.clone());
 
         if list.set_star(&project_path, true) {
-            parkour::save_project_list(&list)
-                .context("failed to save project list")?;
+            parkour::save_project_list(&list).context("failed to save project list")?;
             println!("★ Starred project: {}", project_path.display());
         } else {
             eprintln!("Failed to star project: {}", project_path.display());

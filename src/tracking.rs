@@ -142,8 +142,9 @@ impl ProjectList {
 }
 
 pub fn get_project_list_path() -> Result<PathBuf, ParkourError> {
-    let data_dir = dirs::data_dir()
-        .ok_or_else(|| ParkourError::InvalidPath("could not determine data directory".to_string()))?;
+    let data_dir = dirs::data_dir().ok_or_else(|| {
+        ParkourError::InvalidPath("could not determine data directory".to_string())
+    })?;
 
     let parkour_dir = data_dir.join("parkour");
     fs::create_dir_all(&parkour_dir)?;

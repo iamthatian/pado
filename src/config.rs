@@ -188,8 +188,9 @@ impl GlobalConfig {
 }
 
 pub fn get_global_config_path() -> Result<PathBuf, ParkourError> {
-    let config_dir = dirs::config_dir()
-        .ok_or_else(|| ParkourError::InvalidPath("could not determine config directory".to_string()))?;
+    let config_dir = dirs::config_dir().ok_or_else(|| {
+        ParkourError::InvalidPath("could not determine config directory".to_string())
+    })?;
 
     let parkour_config_dir = config_dir.join("parkour");
     Ok(parkour_config_dir.join("config.toml"))

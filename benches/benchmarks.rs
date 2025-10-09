@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use parkour::*;
 use std::fs;
 use tempfile::TempDir;
@@ -48,9 +48,7 @@ fn setup_file_tree(num_files: usize) -> TempDir {
 
 fn bench_find_project_root_shallow(c: &mut Criterion) {
     let temp_dir = setup_nested_project(5);
-    let deepest = temp_dir
-        .path()
-        .join("level0/level1/level2/level3/level4");
+    let deepest = temp_dir.path().join("level0/level1/level2/level3/level4");
 
     c.bench_function("find_project_root_shallow_5", |b| {
         b.iter(|| {

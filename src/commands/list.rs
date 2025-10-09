@@ -1,11 +1,10 @@
 use anyhow::{Context, Result};
 use std::io::Write;
-use std::process::{Command, exit, Stdio};
+use std::process::{Command, Stdio, exit};
 
 pub fn run_list(format: Option<String>, sort_by: Option<String>, starred: bool) -> Result<()> {
     let config = parkour::GlobalConfig::load().unwrap_or_default();
-    let list = parkour::load_project_list()
-        .context("failed to load project list")?;
+    let list = parkour::load_project_list().context("failed to load project list")?;
 
     let sort_order = sort_by.as_ref().unwrap_or(&config.defaults.sort_order);
     let output_format = format.as_ref().unwrap_or(&config.defaults.output_format);
@@ -61,8 +60,7 @@ pub fn run_list(format: Option<String>, sort_by: Option<String>, starred: bool) 
 
 pub fn run_recent(limit: Option<usize>) -> Result<()> {
     let config = parkour::GlobalConfig::load().unwrap_or_default();
-    let list = parkour::load_project_list()
-        .context("failed to load project list")?;
+    let list = parkour::load_project_list().context("failed to load project list")?;
 
     let limit = limit.unwrap_or(config.defaults.recent_limit);
     let projects = list.get_recent_projects(limit);
@@ -92,8 +90,7 @@ pub fn run_recent(limit: Option<usize>) -> Result<()> {
 }
 
 pub fn run_stats() -> Result<()> {
-    let list = parkour::load_project_list()
-        .context("failed to load project list")?;
+    let list = parkour::load_project_list().context("failed to load project list")?;
 
     let projects: Vec<_> = list.projects.values().collect();
 
@@ -104,7 +101,10 @@ pub fn run_stats() -> Result<()> {
 
     println!("\nProject Statistics:\n");
     println!("Total projects: {}", projects.len());
-    println!("Starred projects: {}", projects.iter().filter(|p| p.starred).count());
+    println!(
+        "Starred projects: {}",
+        projects.iter().filter(|p| p.starred).count()
+    );
 
     let mut sorted_by_access: Vec<_> = projects.clone();
     sorted_by_access.sort_by(|a, b| b.access_count.cmp(&a.access_count));
@@ -112,7 +112,10 @@ pub fn run_stats() -> Result<()> {
     println!("\nMost Accessed:");
     for project in sorted_by_access.iter().take(10) {
         let star = if project.starred { "★ " } else { "  " };
-        println!("  {}{:<30} {} accesses", star, project.name, project.access_count);
+        println!(
+            "  {}{:<30} {} accesses",
+            star, project.name, project.access_count
+        );
     }
 
     let mut sorted_by_time: Vec<_> = projects.clone();
@@ -125,7 +128,8 @@ pub fn run_stats() -> Result<()> {
         println!("  {}{:<30} {}", star, project.name, time_ago);
     }
 
-    let mut type_counts: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+    let mut type_counts: std::collections::HashMap<String, usize> =
+        std::collections::HashMap::new();
     for project in &projects {
         *type_counts.entry(project.project_type.clone()).or_insert(0) += 1;
     }
@@ -143,8 +147,7 @@ pub fn run_stats() -> Result<()> {
 
 pub fn run_switch(recent: bool, starred: bool) -> Result<()> {
     let config = parkour::GlobalConfig::load().unwrap_or_default();
-    let list = parkour::load_project_list()
-        .context("failed to load project list")?;
+    let list = parkour::load_project_list().context("failed to load project list")?;
 
     let projects = if starred {
         list.get_starred_projects()
@@ -176,7 +179,9 @@ pub fn run_switch(recent: bool, starred: bool) -> Result<()> {
     if let Some(stdin) = fzf.stdin.as_mut() {
         for project in projects {
             let star = if project.starred { "★ " } else { "  " };
-            writeln!(stdin, "{}{}\t{}\t{}",
+            writeln!(
+                stdin,
+                "{}{}\t{}\t{}",
                 star,
                 project.name,
                 project.project_type,

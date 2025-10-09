@@ -13,7 +13,10 @@ fn test_find_project_root_basic() {
     fs::create_dir_all(&subdir).unwrap();
 
     let found_root = find_project_root(&subdir).unwrap();
-    assert_eq!(found_root.canonicalize().unwrap(), root.canonicalize().unwrap());
+    assert_eq!(
+        found_root.canonicalize().unwrap(),
+        root.canonicalize().unwrap()
+    );
 }
 
 #[test]
@@ -33,14 +36,20 @@ fn test_find_project_root_different_markers() {
     let subdir = temp_dir.path().join("src");
     fs::create_dir(&subdir).unwrap();
     let found = find_project_root(&subdir).unwrap();
-    assert_eq!(found.canonicalize().unwrap(), temp_dir.path().canonicalize().unwrap());
+    assert_eq!(
+        found.canonicalize().unwrap(),
+        temp_dir.path().canonicalize().unwrap()
+    );
 
     let temp_dir2 = TempDir::new().unwrap();
     fs::write(temp_dir2.path().join("package.json"), "{}").unwrap();
     let subdir2 = temp_dir2.path().join("src");
     fs::create_dir(&subdir2).unwrap();
     let found2 = find_project_root(&subdir2).unwrap();
-    assert_eq!(found2.canonicalize().unwrap(), temp_dir2.path().canonicalize().unwrap());
+    assert_eq!(
+        found2.canonicalize().unwrap(),
+        temp_dir2.path().canonicalize().unwrap()
+    );
 }
 
 #[test]
@@ -58,7 +67,10 @@ fn test_find_project_root_nested_projects() {
     fs::create_dir(&inner_subdir).unwrap();
 
     let found = find_project_root(&inner_subdir).unwrap();
-    assert_eq!(found.canonicalize().unwrap(), inner_root.canonicalize().unwrap());
+    assert_eq!(
+        found.canonicalize().unwrap(),
+        inner_root.canonicalize().unwrap()
+    );
 }
 
 #[test]
@@ -345,8 +357,16 @@ fn test_list_project_files_with_pattern() {
     fs::write(root.join("file3.rs"), "").unwrap();
 
     let files = list_project_files(root, Some("*.rs")).unwrap();
-    assert!(files.iter().any(|f| f.to_str().unwrap().contains("file2.rs")));
-    assert!(files.iter().any(|f| f.to_str().unwrap().contains("file3.rs")));
+    assert!(
+        files
+            .iter()
+            .any(|f| f.to_str().unwrap().contains("file2.rs"))
+    );
+    assert!(
+        files
+            .iter()
+            .any(|f| f.to_str().unwrap().contains("file3.rs"))
+    );
 }
 
 #[test]
@@ -364,7 +384,8 @@ fn test_list_project_files_respects_gitignore() {
     fs::write(root.join("target").join("debug.txt"), "").unwrap();
 
     let files = list_project_files(root, None).unwrap();
-    let file_names: Vec<_> = files.iter()
+    let file_names: Vec<_> = files
+        .iter()
         .filter_map(|p| p.file_name().and_then(|n| n.to_str()))
         .collect();
 

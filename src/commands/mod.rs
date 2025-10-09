@@ -99,14 +99,14 @@ pub enum Commands {
     },
 }
 
-mod init;
 mod add;
-mod remove;
-mod list;
-mod info;
 mod build_cmd;
-mod files;
 mod config_cmd;
+mod files;
+mod info;
+mod init;
+mod list;
+mod remove;
 
 impl Run for Cli {
     fn run(self) -> Result<()> {
@@ -116,11 +116,9 @@ impl Run for Cli {
                 use anyhow::Context;
                 use std::env;
 
-                let cwd = env::current_dir()
-                    .context("failed to get current directory")?;
+                let cwd = env::current_dir().context("failed to get current directory")?;
 
-                let root = parkour::find_project_root(&cwd)
-                    .context("no project root found")?;
+                let root = parkour::find_project_root(&cwd).context("no project root found")?;
 
                 println!("{}", root.display());
                 Ok(())
@@ -141,7 +139,11 @@ impl Run for Commands {
             Commands::Clear => remove::run_clear(),
             Commands::Cleanup => remove::run_cleanup(),
             Commands::Discover { path, depth } => remove::run_discover(path, depth),
-            Commands::List { format, sort_by, starred } => list::run_list(format, sort_by, starred),
+            Commands::List {
+                format,
+                sort_by,
+                starred,
+            } => list::run_list(format, sort_by, starred),
             Commands::Recent { limit } => list::run_recent(limit),
             Commands::Stats => list::run_stats(),
             Commands::Switch { recent, starred } => list::run_switch(recent, starred),

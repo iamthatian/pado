@@ -97,9 +97,11 @@ impl BuildSystem {
             .ok()
             .map(|entries| {
                 entries.filter_map(|e| e.ok()).any(|entry| {
-                    entry.file_name().to_str().map(|name| {
-                        exts.iter().any(|ext| name.ends_with(ext))
-                    }).unwrap_or(false)
+                    entry
+                        .file_name()
+                        .to_str()
+                        .map(|name| exts.iter().any(|ext| name.ends_with(ext)))
+                        .unwrap_or(false)
                 })
             })
             .unwrap_or(false)
@@ -185,7 +187,10 @@ impl BuildSystem {
             BuildSystem::Zig => Some("zig build run"),
             BuildSystem::Terraform => Some("terraform apply"),
             BuildSystem::Nix => Some("nix run"),
-            BuildSystem::Make | BuildSystem::CMake | BuildSystem::Luarocks | BuildSystem::Unknown => None,
+            BuildSystem::Make
+            | BuildSystem::CMake
+            | BuildSystem::Luarocks
+            | BuildSystem::Unknown => None,
         }
     }
 
