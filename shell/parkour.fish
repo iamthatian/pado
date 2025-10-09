@@ -23,7 +23,7 @@ function pkfind
     end
 end
 
-function pksearch
+function pkgrep
     set -l root (pk)
     or return
     if command -v rg &> /dev/null
@@ -34,13 +34,56 @@ function pksearch
     end
 end
 
+function pksearch
+    set -l root (pk)
+    or return
+
+    if not type -q rg; or not type -q fzf
+        echo "pksearch requires both ripgrep (rg) and fzf" >&2
+        return 1
+    end
+
+    cd $root || return
+
+    set -l result (fzf --ansi --disabled --no-sort --delimiter : \
+        --bind "change:reload:sleep 0.1; rg --line-number --color=always --no-heading --smart-case {q} || true" \
+        --bind "ctrl-r:reload:sleep 0.1; rg --line-number --color=always --no-heading --smart-case {q} || true" \
+        --preview 'bat --color=always --style=numbers --highlight-line {2} {1}' \
+        --preview-window 'up,60%,border-bottom,+{2}+3/3' \
+        --prompt '🔍 Search> ' \
+        --height=90% \
+        --layout=reverse | tr -d '\r')
+
+    test -z "$result"; and return
+
+    set -l file (echo $result | cut -d: -f1)
+    set -l line (echo $result | cut -d: -f2)
+
+    if test -n "$file" -a -n "$line"
+        switch $EDITOR
+            case nvim vim
+                eval "$EDITOR +$line $file"
+            case code
+                eval "code -g $file:$line"
+            case 'emacsclient*'
+                eval "emacsclient -n +$line:$file"
+            case '*'
+                eval "$EDITOR $file"
+        end
+    end
+end
+
 function pkedit
     set -l root (pk)
     or return
-    if command -v fzf &> /dev/null; and command -v fd &> /dev/null
-        set -l file (cd $root && fd --type f | fzf)
+
+    if command -v fzf >/dev/null; and command -v fd >/dev/null
+        cd $root || return
+
+        set -l file (fd --type f --strip-cwd-prefix | fzf --no-multi --ansi | tr -d '\r')
+
         if test -n "$file"
-            eval $EDITOR $root/$file
+            eval "$EDITOR" "$file"
         end
     else
         echo "pkedit requires fzf and fd to be installed" >&2
@@ -58,6 +101,46 @@ function pkswitch
     else
         echo "pkswitch requires fzf to be installed" >&2
         return 1
+    end
+end
+
+function pkjump
+    if not type -q fzf
+        echo "pkjump requires fzf to be installed" >&2
+        return 1
+    end
+
+    set -l switch_out (pk switch --print-only 2>/dev/null; or pk switch 2>/dev/null)
+    set switch_out (string replace -r '\r' '' $switch_out)
+
+    if string match -q "cd*" $switch_out
+        set -l root (string replace -r '^cd[[:space:]]+' '' $switch_out)
+        set root (string trim --chars="'\"" $root)
+    else
+        set -l root $switch_out
+    end
+
+    if not test -d "$root"
+        echo "Directory not found: $root" >&2
+        return 1
+    end
+
+    cd "$root" || return
+
+    set -l action (printf "Find files\nSearch text\nShow tree\n" |
+        fzf --prompt 'Choose action> ' --ansi --height=30% --layout=reverse | tr -d '\r')
+
+    test -z "$action"; and return
+
+    switch $action
+        case "Find files"
+            pkedit
+        case "Search text"
+            pksearch
+        case "Show tree"
+            pktree
+        case '*'
+            echo "Unknown action: $action"
     end
 end
 
