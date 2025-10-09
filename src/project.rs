@@ -206,6 +206,12 @@ impl ProjectType {
     }
 }
 
+pub struct ProjectInfo {
+    pub root: PathBuf,
+    pub project_type: ProjectType,
+    pub file_count: usize,
+}
+
 pub fn contains_project_file(dir: &Path) -> std::io::Result<bool> {
     contains_project_file_with_config(dir, &GlobalConfig::default())
 }
@@ -453,12 +459,6 @@ pub fn glob_match(pattern: &str, text: &str) -> bool {
     } else {
         pattern == text
     }
-}
-
-pub struct ProjectInfo {
-    pub root: PathBuf,
-    pub project_type: ProjectType,
-    pub file_count: usize,
 }
 
 pub fn get_project_info(root: &Path) -> Result<ProjectInfo, ParkourError> {

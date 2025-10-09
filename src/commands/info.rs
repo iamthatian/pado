@@ -252,7 +252,6 @@ pub fn run_deps() -> Result<()> {
 pub fn run_outdated() -> Result<()> {
     let cwd = env::current_dir()
         .context("failed to get current directory")?;
-
     let root = parkour::find_project_root(&cwd)
         .context("no project root found")?;
 
@@ -260,23 +259,16 @@ pub fn run_outdated() -> Result<()> {
 
     println!("\nChecking for outdated dependencies...\n");
 
-    let (cmd, args): (&str, Vec<&str>) = match build_system {
-        parkour::BuildSystem::Cargo => ("cargo", vec!["outdated"]),
-        parkour::BuildSystem::Npm => ("npm", vec!["outdated"]),
-        parkour::BuildSystem::Yarn => ("yarn", vec!["outdated"]),
-        parkour::BuildSystem::Pnpm => ("pnpm", vec!["outdated"]),
-        parkour::BuildSystem::Pip => ("pip", vec!["list", "--outdated"]),
-        _ => {
-            println!("Outdated check not implemented for this build system");
-            return Ok(());
-        }
-    };
+    if let Some((cmd, args)) = build_system.outdated_command() {
+        let status = Command::new(cmd)
+            .args(args)
+            .current_dir(&root)
+            .status()
+            .context(format!("failed to execute {} - is it installed?", cmd))?;
 
-    let status = Command::new(cmd)
-        .args(&args)
-        .current_dir(&root)
-        .status()
-        .context(format!("failed to execute {} - is it installed?", cmd))?;
-
-    exit(status.code().unwrap_or(1));
+        exit(status.code().unwrap_or(1));
+    } else {
+        println!("Outdated check not implemented for this build system");
+        Ok(())
+    }
 }
