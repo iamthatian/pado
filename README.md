@@ -13,8 +13,7 @@ for people who work across a bunch of projects.
 - Generates language and Git contribution statistics directly in the terminal.
 - Offers rich project health checks, dependency summaries, and outdated
   package audits.
-- Ships with optional shell helpers (`pkcd`, `pkstats`, prompt integration, and
-  more) via `eval "$(pk init)"`.
+- Ships with optional shell helpers via `eval "$(pk init)"`.
 
 ## Installation
 
@@ -40,8 +39,7 @@ cargo install --path .
    eval "$(pk init)"
    ```
 
-   The script defines conveniences such as `pkcd`, `pkinfo`, and `pk_prompt`
-   without mutating your shell if `pk` is absent.
+   The script shell functions to use along with `pk`.
 
 2. Jump to the nearest project root:
 
@@ -172,7 +170,6 @@ auto_star_on_add = true
 `pk init` initializes scripts for your current shell (Bash, Zsh, or Fish) to
 provide:
 
-- `pkcd`, `pktree`, `pksearch`, `pkstats`, and other convenience wrappers.
 - `pk_prompt` for embedding project context in your `$PS1`.
 - Guarded helpers that warn if supporting tools (`fzf`, `fd`, `rg`) are missing.
 
