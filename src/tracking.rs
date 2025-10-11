@@ -143,9 +143,8 @@ impl ProjectList {
 }
 
 pub fn get_project_list_path() -> Result<PathBuf, PadoError> {
-    let data_dir = dirs::data_dir().ok_or_else(|| {
-        PadoError::InvalidPath("could not determine data directory".to_string())
-    })?;
+    let data_dir = dirs::data_dir()
+        .ok_or_else(|| PadoError::InvalidPath("could not determine data directory".to_string()))?;
 
     let pado_dir = data_dir.join("pado");
     fs::create_dir_all(&pado_dir)?;

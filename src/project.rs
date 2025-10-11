@@ -735,10 +735,7 @@ pub fn detect_project_type(root: &Path) -> ProjectType {
     ProjectType::Unknown
 }
 
-pub fn list_project_files(
-    root: &Path,
-    pattern: Option<&str>,
-) -> Result<Vec<PathBuf>, PadoError> {
+pub fn list_project_files(root: &Path, pattern: Option<&str>) -> Result<Vec<PathBuf>, PadoError> {
     let mut files = Vec::new();
 
     for result in WalkBuilder::new(root)
@@ -817,10 +814,7 @@ pub fn discover_subprojects(root: &Path, max_depth: usize) -> Vec<PathBuf> {
     .unwrap_or_default()
 }
 
-pub fn discover_projects(
-    search_path: &Path,
-    max_depth: usize,
-) -> Result<Vec<PathBuf>, PadoError> {
+pub fn discover_projects(search_path: &Path, max_depth: usize) -> Result<Vec<PathBuf>, PadoError> {
     scan_projects(search_path, max_depth, |p| is_project_root(p))
 }
 

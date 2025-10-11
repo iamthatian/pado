@@ -35,8 +35,7 @@ pub fn run_find(pattern: String, print: bool) -> Result<()> {
 
     let root = pado::find_project_root(&cwd).context("no project root found")?;
 
-    let files =
-        pado::list_project_files(&root, Some(&pattern)).context("failed to find files")?;
+    let files = pado::list_project_files(&root, Some(&pattern)).context("failed to find files")?;
 
     if print {
         for file in files {
