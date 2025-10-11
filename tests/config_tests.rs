@@ -5,7 +5,6 @@ use tempfile::TempDir;
 fn test_global_config_load_default() {
     let config = GlobalConfig::default();
     assert_eq!(config.defaults.sort_order, "time");
-    assert_eq!(config.defaults.output_format, "table");
     assert_eq!(config.defaults.recent_limit, 10);
 }
 

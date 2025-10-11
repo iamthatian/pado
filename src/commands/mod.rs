@@ -34,7 +34,11 @@ pub enum Commands {
     Type,
     List {
         #[arg(long)]
-        format: Option<String>,
+        json: bool,
+        #[arg(long, short)]
+        verbose: bool,
+        #[arg(long)]
+        path: bool,
         #[arg(long)]
         sort_by: Option<String>,
         #[arg(long)]
@@ -119,6 +123,19 @@ impl Run for Cli {
 
                 let root = pado::find_project_root(&cwd).context("no project root found")?;
 
+                if let Ok(mut list) = pado::load_project_list() {
+                    let key = root.to_string_lossy().to_string();
+                    let exists = list.projects.contains_key(&key);
+
+                    if exists {
+                        list.update_access_time(&root);
+                    } else {
+                        let _ = list.add_project(root.clone());
+                    }
+
+                    let _ = pado::save_project_list(&list);
+                }
+
                 println!("{}", root.display());
                 Ok(())
             }
@@ -138,10 +155,12 @@ impl Run for Commands {
             Commands::Cleanup => remove::run_cleanup(),
             Commands::Discover { path, depth } => remove::run_discover(path, depth),
             Commands::List {
-                format,
+                json,
+                verbose,
+                path,
                 sort_by,
                 starred,
-            } => list::run_list(format, sort_by, starred),
+            } => list::run_list(json, verbose, path, sort_by, starred),
             Commands::Recent { limit } => list::run_recent(limit),
             Commands::Stats => list::run_stats(),
             Commands::Switch { recent, starred } => list::run_switch(recent, starred),

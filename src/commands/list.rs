@@ -1,13 +1,20 @@
 use anyhow::{Context, Result};
+use std::env;
 use std::io::Write;
+use std::path::PathBuf;
 use std::process::{Command, Stdio, exit};
 
-pub fn run_list(format: Option<String>, sort_by: Option<String>, starred: bool) -> Result<()> {
+fn get_current_project_root() -> Option<PathBuf> {
+    env::current_dir()
+        .ok()
+        .and_then(|cwd| pado::find_project_root(&cwd).ok())
+}
+
+pub fn run_list(json: bool, verbose: bool, path: bool, sort_by: Option<String>, starred: bool) -> Result<()> {
     let config = pado::GlobalConfig::load().unwrap_or_default();
     let list = pado::load_project_list().context("failed to load project list")?;
 
     let sort_order = sort_by.as_ref().unwrap_or(&config.defaults.sort_order);
-    let output_format = format.as_ref().unwrap_or(&config.defaults.output_format);
 
     let projects = if starred {
         list.get_starred_projects()
@@ -24,35 +31,59 @@ pub fn run_list(format: Option<String>, sort_by: Option<String>, starred: bool) 
         return Ok(());
     }
 
-    match output_format.as_str() {
-        "paths" => {
-            for project in projects {
-                println!("{}", project.path.display());
-            }
+    if json {
+        println!("{}", serde_json::to_string_pretty(&list)?);
+    } else if path {
+        for project in projects {
+            println!("{}", project.path.display());
         }
-        "json" => {
-            println!("{}", serde_json::to_string_pretty(&list)?);
+    } else if verbose {
+        use comfy_table::Table;
+
+        let current_root = get_current_project_root();
+
+        let mut table = Table::new();
+        table.set_header(vec!["", "Name", "Type", "Path", "Accessed", "Count", "★"]);
+
+        for project in projects {
+            let last_accessed = project.last_accessed.format("%Y-%m-%d %H:%M").to_string();
+            let star = if project.starred { "★" } else { "" };
+            let current_marker = if current_root.as_ref() == Some(&project.path) {
+                "•"
+            } else {
+                ""
+            };
+            table.add_row(vec![
+                current_marker,
+                &project.name,
+                &project.project_type,
+                &project.path.display().to_string(),
+                &last_accessed,
+                &project.access_count.to_string(),
+                star,
+            ]);
         }
-        _ => {
-            use comfy_table::Table;
 
-            let mut table = Table::new();
-            table.set_header(vec!["Name", "Type", "Path", "Accessed", "Count", "★"]);
+        println!("{}", table);
+    } else {
+        // Plain text output (default)
+        let current_root = get_current_project_root();
 
-            for project in projects {
-                let last_accessed = project.last_accessed.format("%Y-%m-%d %H:%M").to_string();
-                let star = if project.starred { "★" } else { "" };
-                table.add_row(vec![
-                    &project.name,
-                    &project.project_type,
-                    &project.path.display().to_string(),
-                    &last_accessed,
-                    &project.access_count.to_string(),
-                    star,
-                ]);
-            }
-
-            println!("{}", table);
+        for project in projects {
+            let current_marker = if current_root.as_ref() == Some(&project.path) {
+                "• "
+            } else {
+                "  "
+            };
+            let star = if project.starred { "★ " } else { "" };
+            println!(
+                "{}{}{}\t{}\t{}",
+                current_marker,
+                star,
+                project.name,
+                project.project_type,
+                project.path.display()
+            );
         }
     }
     Ok(())
@@ -168,6 +199,8 @@ pub fn run_switch(recent: bool, starred: bool) -> Result<()> {
         exit(1);
     }
 
+    let current_root = get_current_project_root();
+
     let mut fzf = Command::new("fzf")
         .arg("--height=40%")
         .arg("--reverse")
@@ -179,9 +212,15 @@ pub fn run_switch(recent: bool, starred: bool) -> Result<()> {
     if let Some(stdin) = fzf.stdin.as_mut() {
         for project in projects {
             let star = if project.starred { "★ " } else { "  " };
+            let current_marker = if current_root.as_ref() == Some(&project.path) {
+                "• "
+            } else {
+                "  "
+            };
             writeln!(
                 stdin,
-                "{}{}\t{}\t{}",
+                "{}{}{}\t{}\t{}",
+                current_marker,
                 star,
                 project.name,
                 project.project_type,

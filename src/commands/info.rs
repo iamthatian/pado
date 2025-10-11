@@ -96,7 +96,8 @@ pub fn run_info() -> Result<()> {
                 println!("  Last commit: {}", pado::format_time_ago(last_commit));
             }
         }
-        Ok(None) | Err(_) => {} // Hide git section when not available or on error
+        // NOTE: Should we show error on git error?
+        Ok(None) | Err(_) => {}
     }
 
     println!();

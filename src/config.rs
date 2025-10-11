@@ -34,9 +34,6 @@ pub struct DefaultsConfig {
     #[serde(default = "default_sort_order")]
     pub sort_order: String,
 
-    #[serde(default = "default_output_format")]
-    pub output_format: String,
-
     #[serde(default = "default_recent_limit")]
     pub recent_limit: usize,
 }
@@ -74,9 +71,6 @@ pub struct BehaviorConfig {
 fn default_sort_order() -> String {
     "time".to_string()
 }
-fn default_output_format() -> String {
-    "table".to_string()
-}
 fn default_recent_limit() -> usize {
     10
 }
@@ -97,7 +91,6 @@ impl Default for DefaultsConfig {
     fn default() -> Self {
         Self {
             sort_order: default_sort_order(),
-            output_format: default_output_format(),
             recent_limit: default_recent_limit(),
         }
     }
