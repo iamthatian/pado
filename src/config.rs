@@ -204,14 +204,14 @@ pub struct ProjectConfig {
 
 impl ProjectConfig {
     pub fn load(root: &Path) -> Result<Option<ProjectConfig>, PadoError> {
-        let config_path = root.join(".pd.toml");
+        let config_path = root.join(".pado.toml");
         if !config_path.exists() {
             return Ok(None);
         }
 
         let contents = fs::read_to_string(&config_path)?;
         let config: ProjectConfig = toml::from_str(&contents)
-            .map_err(|e| PadoError::ConfigParse(format!(".pd.toml: {}", e)))?;
+            .map_err(|e| PadoError::ConfigParse(format!(".pado.toml: {}", e)))?;
 
         Ok(Some(config))
     }

@@ -9,7 +9,7 @@ for people who work across a bunch of projects.
   .NET, and more).
 - Keeps a lightweight history of projects you’ve opened.
 - Runs build, test, or run command by autodetecting the active build system or
-  honoring per-project overrides (`.pd.toml`).
+  honoring per-project overrides (`.pado.toml`).
 - Generates language and Git contribution statistics directly in the terminal.
 - Offers rich project health checks, dependency summaries, and outdated
   package audits.
@@ -119,13 +119,13 @@ Use the following commands to run the detected workflows:
 - `pd build`
 - `pd test`
 - `pd run`
-- `pd exec <name>` – execute a custom command defined in `.pd.toml`.
+- `pd exec <name>` – execute a custom command defined in `.pado.toml`.
 - `pd exec-all <cmd...> [--tag <type>]` – run a command across every tracked
   project (optionally filtered by detected project type).
 
 ### Project-specific overrides
 
-Place a `.pd.toml` file in a project root to define custom commands:
+Place a `.pado.toml` file in a project root to define custom commands:
 
 ```toml
 [commands]

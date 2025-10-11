@@ -113,8 +113,8 @@ pub fn run_exec(command: String) -> Result<()> {
     let root = pado::find_project_root(&cwd).context("no project root found")?;
 
     let config = pado::ProjectConfig::load(&root)
-        .context("failed to load .pd.toml")?
-        .context(".pd.toml not found in project root")?;
+        .context("failed to load .pado.toml")?
+        .context(".pado.toml not found in project root")?;
 
     if let Some(cmd) = config.get_command(&command) {
         println!("Running: {}", cmd);
@@ -126,7 +126,7 @@ pub fn run_exec(command: String) -> Result<()> {
             .context("failed to execute command")?;
         exit(status.code().unwrap_or(1));
     } else {
-        eprintln!("Command '{}' not found in .pd.toml", command);
+        eprintln!("Command '{}' not found in .pado.toml", command);
         exit(1);
     }
 }
