@@ -5,7 +5,7 @@ use std::process::{Command, exit};
 // TODO: Move tailored functionality to projects.rs
 pub fn run_info() -> Result<()> {
     let cwd = env::current_dir().context("failed to get current directory")?;
-    let info = parkour::get_project_info(&cwd).context("no project root found")?;
+    let info = pado::get_project_info(&cwd).context("no project root found")?;
 
     let project_name = info
         .root
@@ -47,7 +47,7 @@ pub fn run_info() -> Result<()> {
     println!();
 
     println!("Language Statistics:");
-    match parkour::get_language_stats(&info.root) {
+    match pado::get_language_stats(&info.root) {
         Ok(stats) => {
             if stats.languages.is_empty() {
                 println!("  No source code detected");
@@ -58,7 +58,7 @@ pub fn run_info() -> Result<()> {
                     } else {
                         0.0
                     };
-                    let bar = parkour::create_percentage_bar(percentage, 20);
+                    let bar = pado::create_percentage_bar(percentage, 20);
                     println!(
                         "  {:<12} {} {:>5.1}%  ({} lines)",
                         lang.name, bar, percentage, lang.lines
@@ -74,9 +74,9 @@ pub fn run_info() -> Result<()> {
         Err(e) => eprintln!("   Failed to analyze languages: {}", e),
     }
 
-    println!("Git Information:");
-    match parkour::get_git_stats(&info.root) {
+    match pado::get_git_stats(&info.root) {
         Ok(Some(git_stats)) => {
+            println!("Git Information:");
             println!("  Total commits: {}", git_stats.total_commits);
 
             if !git_stats.contributors.is_empty() {
@@ -93,11 +93,10 @@ pub fn run_info() -> Result<()> {
             }
 
             if let Some(last_commit) = git_stats.last_commit_time {
-                println!("  Last commit: {}", parkour::format_time_ago(last_commit));
+                println!("  Last commit: {}", pado::format_time_ago(last_commit));
             }
         }
-        Ok(None) => println!("  Not a git repository"),
-        Err(e) => eprintln!("   Failed to get git stats: {}", e),
+        Ok(None) | Err(_) => {} // Hide git section when not available or on error
     }
 
     println!();
@@ -106,7 +105,7 @@ pub fn run_info() -> Result<()> {
 
 pub fn run_type() -> Result<()> {
     let cwd = env::current_dir().context("failed to get current directory")?;
-    let info = parkour::get_project_info(&cwd).context("no project root found")?;
+    let info = pado::get_project_info(&cwd).context("no project root found")?;
 
     if info.project_types.is_empty() {
         println!("unknown");
@@ -126,7 +125,7 @@ pub fn run_type() -> Result<()> {
 
 pub fn run_health() -> Result<()> {
     let cwd = env::current_dir().context("failed to get current directory")?;
-    let info = parkour::get_project_info(&cwd).context("no project root found")?;
+    let info = pado::get_project_info(&cwd).context("no project root found")?;
 
     println!("\n🩺 Project Health Check\n");
     println!(
@@ -162,7 +161,7 @@ pub fn run_health() -> Result<()> {
 
     for project_type in &info.project_types {
         match project_type {
-            parkour::ProjectType::Rust => {
+            pado::ProjectType::Rust => {
                 if info.root.join("Cargo.lock").exists() {
                     ok_checks.push("✓ Cargo.lock present");
                 }
@@ -170,7 +169,7 @@ pub fn run_health() -> Result<()> {
                     ok_checks.push("✓ target directory exists");
                 }
             }
-            parkour::ProjectType::Node => {
+            pado::ProjectType::Node => {
                 if info.root.join("node_modules").exists() {
                     ok_checks.push("✓ node_modules present");
                 } else {
@@ -182,7 +181,7 @@ pub fn run_health() -> Result<()> {
                     ok_checks.push("✓ Lock file present");
                 }
             }
-            parkour::ProjectType::Python => {
+            pado::ProjectType::Python => {
                 if info.root.join(".venv").exists() || info.root.join("venv").exists() {
                     ok_checks.push("✓ Virtual environment found");
                 } else {
@@ -230,13 +229,13 @@ pub fn run_health() -> Result<()> {
 
 pub fn run_deps() -> Result<()> {
     let cwd = env::current_dir().context("failed to get current directory")?;
-    let info = parkour::get_project_info(&cwd).context("no project root found")?;
+    let info = pado::get_project_info(&cwd).context("no project root found")?;
 
     println!("\nProject Dependencies\n");
 
     for project_type in &info.project_types {
         match project_type {
-            parkour::ProjectType::Rust => {
+            pado::ProjectType::Rust => {
                 let cargo_toml = info.root.join("Cargo.toml");
                 if cargo_toml.exists() {
                     println!("Dependencies from Cargo.toml:\n");
@@ -256,13 +255,13 @@ pub fn run_deps() -> Result<()> {
                     }
                 }
             }
-            parkour::ProjectType::Node => {
+            pado::ProjectType::Node => {
                 let package_json = info.root.join("package.json");
                 if package_json.exists() {
                     println!("Run `npm list` or `yarn list` to view dependencies");
                 }
             }
-            parkour::ProjectType::Python => {
+            pado::ProjectType::Python => {
                 let requirements = info.root.join("requirements.txt");
                 if requirements.exists() {
                     println!("Dependencies from requirements.txt:\n");
@@ -286,9 +285,9 @@ pub fn run_deps() -> Result<()> {
 
 pub fn run_outdated() -> Result<()> {
     let cwd = env::current_dir().context("failed to get current directory")?;
-    let info = parkour::get_project_info(&cwd).context("no project root found")?;
+    let info = pado::get_project_info(&cwd).context("no project root found")?;
 
-    let build_system = parkour::BuildSystem::detect(&info.root);
+    let build_system = pado::BuildSystem::detect(&info.root);
 
     println!("\nChecking for outdated dependencies...\n");
 

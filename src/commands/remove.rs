@@ -4,11 +4,11 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio, exit};
 
 pub fn run_remove(path: Option<PathBuf>, all: bool) -> Result<()> {
-    let mut list = parkour::load_project_list().context("failed to load project list")?;
+    let mut list = pado::load_project_list().context("failed to load project list")?;
 
     if let Some(p) = path {
         if list.remove_project(&p) {
-            parkour::save_project_list(&list).context("failed to save project list")?;
+            pado::save_project_list(&list).context("failed to save project list")?;
             println!("Removed project: {}", p.display());
         } else {
             eprintln!("Project not found: {}", p.display());
@@ -63,7 +63,7 @@ pub fn run_remove(path: Option<PathBuf>, all: bool) -> Result<()> {
             }
 
             if removed > 0 {
-                parkour::save_project_list(&list).context("failed to save project list")?;
+                pado::save_project_list(&list).context("failed to save project list")?;
                 println!("\nRemoved {} project(s)", removed);
             }
         }
@@ -72,25 +72,25 @@ pub fn run_remove(path: Option<PathBuf>, all: bool) -> Result<()> {
 }
 
 pub fn run_clear() -> Result<()> {
-    let mut list = parkour::load_project_list().context("failed to load project list")?;
+    let mut list = pado::load_project_list().context("failed to load project list")?;
 
     let count = list.projects.len();
     list.clear();
 
-    parkour::save_project_list(&list).context("failed to save project list")?;
+    pado::save_project_list(&list).context("failed to save project list")?;
 
     println!("Cleared {} projects", count);
     Ok(())
 }
 
 pub fn run_cleanup() -> Result<()> {
-    let mut list = parkour::load_project_list().context("failed to load project list")?;
+    let mut list = pado::load_project_list().context("failed to load project list")?;
 
     let before = list.projects.len();
     list.cleanup();
     let after = list.projects.len();
 
-    parkour::save_project_list(&list).context("failed to save project list")?;
+    pado::save_project_list(&list).context("failed to save project list")?;
 
     println!("Removed {} missing projects", before - after);
     Ok(())
@@ -104,9 +104,9 @@ pub fn run_discover(path: PathBuf, depth: usize) -> Result<()> {
     );
 
     let projects =
-        parkour::discover_projects(&path, depth).context("failed to discover projects")?;
+        pado::discover_projects(&path, depth).context("failed to discover projects")?;
 
-    let mut list = parkour::load_project_list().context("failed to load project list")?;
+    let mut list = pado::load_project_list().context("failed to load project list")?;
 
     let mut added = 0;
     for project in projects {
@@ -118,7 +118,7 @@ pub fn run_discover(path: PathBuf, depth: usize) -> Result<()> {
         }
     }
 
-    parkour::save_project_list(&list).context("failed to save project list")?;
+    pado::save_project_list(&list).context("failed to save project list")?;
 
     println!("\nDiscovered {} new projects", added);
     Ok(())

@@ -1,4 +1,4 @@
-use crate::error::ParkourError;
+use crate::error::PadoError;
 use crate::project::PROJECT_FILES;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -144,7 +144,7 @@ impl Default for GlobalConfig {
 }
 
 impl GlobalConfig {
-    pub fn load() -> Result<GlobalConfig, ParkourError> {
+    pub fn load() -> Result<GlobalConfig, PadoError> {
         let config_path = get_global_config_path()?;
 
         if !config_path.exists() {
@@ -153,12 +153,12 @@ impl GlobalConfig {
 
         let contents = fs::read_to_string(&config_path)?;
         let config: GlobalConfig = toml::from_str(&contents)
-            .map_err(|e| ParkourError::ConfigParse(format!("global config: {}", e)))?;
+            .map_err(|e| PadoError::ConfigParse(format!("global config: {}", e)))?;
 
         Ok(config)
     }
 
-    pub fn save(&self) -> Result<(), ParkourError> {
+    pub fn save(&self) -> Result<(), PadoError> {
         let config_path = get_global_config_path()?;
 
         if let Some(parent) = config_path.parent() {
@@ -166,7 +166,7 @@ impl GlobalConfig {
         }
 
         let contents = toml::to_string_pretty(self)
-            .map_err(|e| ParkourError::SerializationError(format!("global config: {}", e)))?;
+            .map_err(|e| PadoError::SerializationError(format!("global config: {}", e)))?;
 
         fs::write(&config_path, contents)?;
         Ok(())
@@ -187,13 +187,13 @@ impl GlobalConfig {
     }
 }
 
-pub fn get_global_config_path() -> Result<PathBuf, ParkourError> {
+pub fn get_global_config_path() -> Result<PathBuf, PadoError> {
     let config_dir = dirs::config_dir().ok_or_else(|| {
-        ParkourError::InvalidPath("could not determine config directory".to_string())
+        PadoError::InvalidPath("could not determine config directory".to_string())
     })?;
 
-    let parkour_config_dir = config_dir.join("parkour");
-    Ok(parkour_config_dir.join("config.toml"))
+    let pado_config_dir = config_dir.join("pado");
+    Ok(pado_config_dir.join("config.toml"))
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -203,15 +203,15 @@ pub struct ProjectConfig {
 }
 
 impl ProjectConfig {
-    pub fn load(root: &Path) -> Result<Option<ProjectConfig>, ParkourError> {
-        let config_path = root.join(".pk.toml");
+    pub fn load(root: &Path) -> Result<Option<ProjectConfig>, PadoError> {
+        let config_path = root.join(".pd.toml");
         if !config_path.exists() {
             return Ok(None);
         }
 
         let contents = fs::read_to_string(&config_path)?;
         let config: ProjectConfig = toml::from_str(&contents)
-            .map_err(|e| ParkourError::ConfigParse(format!(".pk.toml: {}", e)))?;
+            .map_err(|e| PadoError::ConfigParse(format!(".pd.toml: {}", e)))?;
 
         Ok(Some(config))
     }

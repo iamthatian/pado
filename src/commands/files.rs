@@ -6,7 +6,7 @@ use std::process::{Command, Stdio, exit};
 pub fn run_tree() -> Result<()> {
     let cwd = env::current_dir().context("failed to get current directory")?;
 
-    let root = parkour::find_project_root(&cwd).context("no project root found")?;
+    let root = pado::find_project_root(&cwd).context("no project root found")?;
 
     let status = Command::new("tree")
         .current_dir(root)
@@ -19,9 +19,9 @@ pub fn run_tree() -> Result<()> {
 pub fn run_files(pattern: Option<String>) -> Result<()> {
     let cwd = env::current_dir().context("failed to get current directory")?;
 
-    let root = parkour::find_project_root(&cwd).context("no project root found")?;
+    let root = pado::find_project_root(&cwd).context("no project root found")?;
 
-    let files = parkour::list_project_files(&root, pattern.as_deref())
+    let files = pado::list_project_files(&root, pattern.as_deref())
         .context("failed to list project files")?;
 
     for file in files {
@@ -33,10 +33,10 @@ pub fn run_files(pattern: Option<String>) -> Result<()> {
 pub fn run_find(pattern: String, print: bool) -> Result<()> {
     let cwd = env::current_dir().context("failed to get current directory")?;
 
-    let root = parkour::find_project_root(&cwd).context("no project root found")?;
+    let root = pado::find_project_root(&cwd).context("no project root found")?;
 
     let files =
-        parkour::list_project_files(&root, Some(&pattern)).context("failed to find files")?;
+        pado::list_project_files(&root, Some(&pattern)).context("failed to find files")?;
 
     if print {
         for file in files {
@@ -63,7 +63,7 @@ pub fn run_find(pattern: String, print: bool) -> Result<()> {
 pub fn run_search(query: String) -> Result<()> {
     let cwd = env::current_dir().context("failed to get current directory")?;
 
-    let root = parkour::find_project_root(&cwd).context("no project root found")?;
+    let root = pado::find_project_root(&cwd).context("no project root found")?;
 
     let status = Command::new("rg")
         .arg(&query)

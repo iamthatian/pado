@@ -1,4 +1,4 @@
-use crate::error::ParkourError;
+use crate::error::PadoError;
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -20,7 +20,7 @@ pub struct ProjectStats {
     pub total_blanks: usize,
 }
 
-pub fn get_language_stats(root: &Path) -> Result<ProjectStats, ParkourError> {
+pub fn get_language_stats(root: &Path) -> Result<ProjectStats, PadoError> {
     use tokei::{Config, Languages};
 
     let config = Config::default();
@@ -80,7 +80,7 @@ pub struct GitStats {
     pub last_commit_time: Option<i64>,
 }
 
-pub fn get_git_stats(root: &Path) -> Result<Option<GitStats>, ParkourError> {
+pub fn get_git_stats(root: &Path) -> Result<Option<GitStats>, PadoError> {
     let repo = match gix::discover(root) {
         Ok(r) => r,
         Err(e) => {
@@ -90,7 +90,7 @@ pub fn get_git_stats(root: &Path) -> Result<Option<GitStats>, ParkourError> {
             {
                 return Ok(None);
             }
-            return Err(ParkourError::GitError(format!(
+            return Err(PadoError::GitError(format!(
                 "failed to open repository: {}",
                 e
             )));
@@ -103,7 +103,7 @@ pub fn get_git_stats(root: &Path) -> Result<Option<GitStats>, ParkourError> {
 
     let head = repo
         .head()
-        .map_err(|e| ParkourError::GitError(format!("failed to get HEAD: {}", e)))?;
+        .map_err(|e| PadoError::GitError(format!("failed to get HEAD: {}", e)))?;
 
     if let Some(head_ref) = head.try_into_referent() {
         let head_id = head_ref.id();
@@ -112,7 +112,7 @@ pub fn get_git_stats(root: &Path) -> Result<Option<GitStats>, ParkourError> {
 
         let iter = platform
             .all()
-            .map_err(|e| ParkourError::GitError(format!("failed to walk commits: {}", e)))?;
+            .map_err(|e| PadoError::GitError(format!("failed to walk commits: {}", e)))?;
 
         for commit_result in iter {
             if let Ok(commit_info) = commit_result {

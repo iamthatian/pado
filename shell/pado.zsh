@@ -1,45 +1,41 @@
-# Parkour shell integration for bash
-# Add this to your ~/.bashrc or ~/.bash_profile:
-#   eval "$(pk init)"
+# Pado shell integration for zsh
+# Add this to your ~/.zshrc:
+#   eval "$(pd init)"
 
-pkroot() {
+pdcd() {
     local root
-    root=$(pk) || return
+    root=$(pd) || return
     cd "$root" || return
 }
 
-pkcd() {
-    eval "$(pk cd)"
-}
-
-pkfind() {
+pdfind() {
     local root
-    root=$(pk) || return
+    root=$(pd) || return
     if command -v fzf &> /dev/null && command -v fd &> /dev/null; then
         cd "$root" && fd --type f | fzf
     else
-        echo "pkfind requires fzf and fd to be installed" >&2
+        echo "pdfind requires fzf and fd to be installed" >&2
         return 1
     fi
 }
 
-pkgrep() {
+pdgrep() {
     local root
-    root=$(pk) || return
+    root=$(pd) || return
     if command -v rg &> /dev/null; then
         cd "$root" && rg "$@"
     else
-        echo "pksearch requires ripgrep (rg) to be installed" >&2
+        echo "pdsearch requires ripgrep (rg) to be installed" >&2
         return 1
     fi
 }
 
-pksearch() {
+pdsearch() {
     local root result file line
-    root=$(pk) || return
+    root=$(pd) || return
 
     if ! command -v rg &>/dev/null || ! command -v fzf &>/dev/null; then
-        echo "pksearch requires both ripgrep (rg) and fzf" >&2
+        echo "pdsearch requires both ripgrep (rg) and fzf" >&2
         return 1
     fi
 
@@ -72,9 +68,9 @@ pksearch() {
     fi
 }
 
-pkedit() {
+pdedit() {
     local root file
-    root=$(pk) || return
+    root=$(pd) || return
 
     if command -v fzf &>/dev/null && command -v fd &>/dev/null; then
         cd "$root" || return
@@ -85,33 +81,30 @@ pkedit() {
 
         "${EDITOR:-vi}" "$file"
     else
-        echo "pkedit requires fzf and fd to be installed" >&2
+        echo "pdedit requires fzf and fd to be installed" >&2
         return 1
     fi
 }
 
-pktree() {
-    pk tree
-}
 
-pkswitch() {
+pdswitch() {
     if command -v fzf &> /dev/null; then
-        eval "$(pk switch)"
+        eval "$(pd switch)"
     else
-        echo "pkswitch requires fzf to be installed" >&2
+        echo "pdswitch requires fzf to be installed" >&2
         return 1
     fi
 }
 
-pkjump() {
+pdjump() {
     local root action switch_out
 
     if ! command -v fzf &>/dev/null; then
-        echo "pkjump requires fzf to be installed" >&2
+        echo "pdjump requires fzf to be installed" >&2
         return 1
     fi
 
-    switch_out=$(pk switch --print-only 2>/dev/null || pk switch 2>/dev/null)
+    switch_out=$(pd switch --print-only 2>/dev/null || pd switch 2>/dev/null)
     switch_out=${switch_out//$'\r'/}
 
     if [[ $switch_out == cd* ]]; then
@@ -137,67 +130,76 @@ pkjump() {
     [[ -z $action ]] && return 0
 
     case $action in
-        "Find files") pkedit ;;
-        "Search text") pksearch ;;
-        "Show tree") pktree ;;
+        "Find files") pdedit ;;
+        "Search text") pdsearch ;;
+        "Show tree") pdtree ;;
         *) echo "Unknown action: $action" ;;
     esac
 }
 
-pkinfo() {
-    pk info
-}
+# pdtree() {
+#     pd tree
+# }
 
-pkbuild() {
-    pk build
-}
+# pdinfo() {
+#     pd info
+# }
+#
+# pdbuild() {
+#     pd build
+# }
+#
+# pdtest() {
+#     pd test
+# }
+#
+# pdrun() {
+#     pd run
+# }
+#
+# pdstats() {
+#     pd stats
+# }
+#
+# pdrec() {
+#     pd recent "$@"
+# }
+#
+# pdstar() {
+#     pd star
+# }
 
-pktest() {
-    pk test
-}
+# pdcd() {
+#     eval "$(pd cd)"
+# }
 
-pkrun() {
-    pk run
-}
 
-pkstats() {
-    pk stats
-}
-
-pkrec() {
-    pk recent "$@"
-}
-
-pkstar() {
-    pk star
-}
-
-pkrecent() {
+pdrecent() {
     if command -v fzf &> /dev/null; then
-        eval "$(pk switch --recent)"
+        eval "$(pd switch --recent)"
     else
-        echo "pkrecent requires fzf to be installed" >&2
+        echo "pdrecent requires fzf to be installed" >&2
         return 1
     fi
 }
 
-pkstarred() {
+pdstarred() {
     if command -v fzf &> /dev/null; then
-        eval "$(pk switch --starred)"
+        eval "$(pd switch --starred)"
     else
-        echo "pkstarred requires fzf to be installed" >&2
+        echo "pdstarred requires fzf to be installed" >&2
         return 1
     fi
 }
 
-# Prompt integration - add to PS1 for project info in prompt
-# Example usage:
-#   PS1='[\[\e[34m\]$(pk_prompt)\[\e[0m\]] \w \$ '
-# Or simpler:
-#   PS1='[$(pk_prompt)] \w \$ '
-pk_prompt() {
+# Prompt integration - add to PS1/PROMPT for project info in prompt
+# Example usage with powerlevel10k or oh-my-zsh themes:
+#   PROMPT='%F{blue}$(pd_prompt)%f %~ %# '
+# Or use precmd:
+#   precmd() { RPROMPT="%F{blue}$(pd prompt 2>/dev/null)%f" }
+pd_prompt() {
     local info
-    info=$(pk prompt 2>/dev/null)
+    info=$(pd prompt 2>/dev/null)
     if [ -n "$info" ]; then
         echo "$info"
     fi

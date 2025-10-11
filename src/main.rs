@@ -15,7 +15,7 @@ pub fn main() -> ExitCode {
     match Cli::parse().run() {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
-            _ = writeln!(io::stderr(), "pk: {e:?}");
+            _ = writeln!(io::stderr(), "pd: {e:?}");
             ExitCode::FAILURE
         }
     }

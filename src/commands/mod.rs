@@ -7,7 +7,7 @@ pub trait Run {
 }
 
 #[derive(Parser)]
-#[command(name = "pk")]
+#[command(name = "pd")]
 #[command(about = "Find project root and perform project-aware operations", long_about = None)]
 pub struct Cli {
     #[command(subcommand)]
@@ -32,7 +32,6 @@ pub enum Commands {
     },
     Info,
     Type,
-    Cd,
     List {
         #[arg(long)]
         format: Option<String>,
@@ -118,7 +117,7 @@ impl Run for Cli {
 
                 let cwd = env::current_dir().context("failed to get current directory")?;
 
-                let root = parkour::find_project_root(&cwd).context("no project root found")?;
+                let root = pado::find_project_root(&cwd).context("no project root found")?;
 
                 println!("{}", root.display());
                 Ok(())
@@ -131,7 +130,6 @@ impl Run for Commands {
     fn run(self) -> Result<()> {
         match self {
             Commands::Init => init::run_init(),
-            Commands::Cd => init::run_cd(),
             Commands::Prompt => init::run_prompt(),
             Commands::Add { path } => add::run_add(path),
             Commands::Star { path, unstar } => add::run_star(path, unstar),

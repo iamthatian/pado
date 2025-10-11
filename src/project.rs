@@ -1,5 +1,5 @@
 use crate::config::GlobalConfig;
-use crate::error::ParkourError;
+use crate::error::PadoError;
 use ignore::WalkBuilder;
 use phf::{Set, phf_set};
 use std::path::{Path, PathBuf};
@@ -353,7 +353,7 @@ pub fn contains_project_file_with_config(
     Ok(false)
 }
 
-pub fn find_project_root(start: &Path) -> Result<PathBuf, ParkourError> {
+pub fn find_project_root(start: &Path) -> Result<PathBuf, PadoError> {
     let config = GlobalConfig::load().unwrap_or_default();
     find_project_root_with_config(start, &config)
 }
@@ -361,13 +361,13 @@ pub fn find_project_root(start: &Path) -> Result<PathBuf, ParkourError> {
 pub fn find_project_root_with_config(
     start: &Path,
     config: &GlobalConfig,
-) -> Result<PathBuf, ParkourError> {
+) -> Result<PathBuf, PadoError> {
     for ancestor in start.ancestors() {
-        if contains_project_file_with_config(ancestor, config).map_err(ParkourError::Io)? {
+        if contains_project_file_with_config(ancestor, config).map_err(PadoError::Io)? {
             return Ok(ancestor.to_path_buf());
         }
     }
-    Err(ParkourError::NoProjectRoot(start.to_path_buf()))
+    Err(PadoError::NoProjectRoot(start.to_path_buf()))
 }
 
 pub fn is_project_root(path: &Path) -> bool {
@@ -738,7 +738,7 @@ pub fn detect_project_type(root: &Path) -> ProjectType {
 pub fn list_project_files(
     root: &Path,
     pattern: Option<&str>,
-) -> Result<Vec<PathBuf>, ParkourError> {
+) -> Result<Vec<PathBuf>, PadoError> {
     let mut files = Vec::new();
 
     for result in WalkBuilder::new(root)
@@ -789,7 +789,7 @@ pub fn glob_match(pattern: &str, text: &str) -> bool {
     }
 }
 
-pub fn get_project_info(root: &Path) -> Result<ProjectInfo, ParkourError> {
+pub fn get_project_info(root: &Path) -> Result<ProjectInfo, PadoError> {
     let project_types = detect_project_types(root);
     let monorepo = detect_monorepo(root);
     let subprojects = if monorepo {
@@ -820,7 +820,7 @@ pub fn discover_subprojects(root: &Path, max_depth: usize) -> Vec<PathBuf> {
 pub fn discover_projects(
     search_path: &Path,
     max_depth: usize,
-) -> Result<Vec<PathBuf>, ParkourError> {
+) -> Result<Vec<PathBuf>, PadoError> {
     scan_projects(search_path, max_depth, |p| is_project_root(p))
 }
 
@@ -828,7 +828,7 @@ fn scan_projects<F>(
     root: &Path,
     max_depth: usize,
     mut predicate: F,
-) -> Result<Vec<PathBuf>, ParkourError>
+) -> Result<Vec<PathBuf>, PadoError>
 where
     F: FnMut(&Path) -> bool,
 {

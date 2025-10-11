@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum ParkourError {
+pub enum PadoError {
     #[error("no project root found from {0}")]
     NoProjectRoot(PathBuf),
 

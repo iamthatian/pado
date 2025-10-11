@@ -1,45 +1,41 @@
-# Parkour shell integration for fish
+# Pado shell integration for fish
 # Add this to your ~/.config/fish/config.fish:
-#   pk init | source
+#   pd init | source
 
-function pkroot
-    set -l root (pk)
+function pdcd
+    set -l root (pd)
     or return
     cd $root
 end
 
-function pkcd
-    eval (pk cd)
-end
-
-function pkfind
-    set -l root (pk)
+function pdfind
+    set -l root (pd)
     or return
     if command -v fzf &> /dev/null; and command -v fd &> /dev/null
         cd $root && fd --type f | fzf
     else
-        echo "pkfind requires fzf and fd to be installed" >&2
+        echo "pdfind requires fzf and fd to be installed" >&2
         return 1
     end
 end
 
-function pkgrep
-    set -l root (pk)
+function pdgrep
+    set -l root (pd)
     or return
     if command -v rg &> /dev/null
         cd $root && rg $argv
     else
-        echo "pksearch requires ripgrep (rg) to be installed" >&2
+        echo "pdsearch requires ripgrep (rg) to be installed" >&2
         return 1
     end
 end
 
-function pksearch
-    set -l root (pk)
+function pdsearch
+    set -l root (pd)
     or return
 
     if not type -q rg; or not type -q fzf
-        echo "pksearch requires both ripgrep (rg) and fzf" >&2
+        echo "pdsearch requires both ripgrep (rg) and fzf" >&2
         return 1
     end
 
@@ -73,8 +69,8 @@ function pksearch
     end
 end
 
-function pkedit
-    set -l root (pk)
+function pdedit
+    set -l root (pd)
     or return
 
     if command -v fzf >/dev/null; and command -v fd >/dev/null
@@ -86,31 +82,27 @@ function pkedit
             eval "$EDITOR" "$file"
         end
     else
-        echo "pkedit requires fzf and fd to be installed" >&2
+        echo "pdedit requires fzf and fd to be installed" >&2
         return 1
     end
 end
 
-function pktree
-    pk tree
-end
-
-function pkswitch
+function pdswitch
     if command -v fzf &> /dev/null
-        eval (pk switch)
+        eval (pd switch)
     else
-        echo "pkswitch requires fzf to be installed" >&2
+        echo "pdswitch requires fzf to be installed" >&2
         return 1
     end
 end
 
-function pkjump
+function pdjump
     if not type -q fzf
-        echo "pkjump requires fzf to be installed" >&2
+        echo "pdjump requires fzf to be installed" >&2
         return 1
     end
 
-    set -l switch_out (pk switch --print-only 2>/dev/null; or pk switch 2>/dev/null)
+    set -l switch_out (pd switch --print-only 2>/dev/null; or pd switch 2>/dev/null)
     set switch_out (string replace -r '\r' '' $switch_out)
 
     if string match -q "cd*" $switch_out
@@ -134,58 +126,67 @@ function pkjump
 
     switch $action
         case "Find files"
-            pkedit
+            pdedit
         case "Search text"
-            pksearch
+            pdsearch
         case "Show tree"
-            pktree
+            pdtree
         case '*'
             echo "Unknown action: $action"
     end
 end
 
-function pkinfo
-    pk info
-end
+# function pdtree
+#     pd tree
+# end
+#
+#
+# function pdcd
+#     eval (pd cd)
+# end
+#
+# function pdinfo
+#     pd info
+# end
+#
+# function pdbuild
+#     pd build
+# end
+#
+# function pdtest
+#     pd test
+# end
+#
+# function pdrun
+#     pd run
+# end
+#
+# function pdstats
+#     pd stats
+# end
+#
+# function pdrec
+#     pd recent $argv
+# end
+#
+# function pdstar
+#     pd star
+# end
 
-function pkbuild
-    pk build
-end
-
-function pktest
-    pk test
-end
-
-function pkrun
-    pk run
-end
-
-function pkstats
-    pk stats
-end
-
-function pkrec
-    pk recent $argv
-end
-
-function pkstar
-    pk star
-end
-
-function pkrecent
+function pdrecent
     if command -v fzf &> /dev/null
-        eval (pk switch --recent)
+        eval (pd switch --recent)
     else
-        echo "pkrecent requires fzf to be installed" >&2
+        echo "pdrecent requires fzf to be installed" >&2
         return 1
     end
 end
 
-function pkstarred
+function pdstarred
     if command -v fzf &> /dev/null
-        eval (pk switch --starred)
+        eval (pd switch --starred)
     else
-        echo "pkstarred requires fzf to be installed" >&2
+        echo "pdstarred requires fzf to be installed" >&2
         return 1
     end
 end
@@ -194,13 +195,13 @@ end
 # Example usage - add to your fish_prompt function:
 #   function fish_prompt
 #       set_color blue
-#       echo -n (pk_prompt)
+#       echo -n (pd_prompt)
 #       set_color normal
 #       echo -n ' '
 #       echo -n (prompt_pwd)' > '
 #   end
-function pk_prompt
-    set -l info (pk prompt 2>/dev/null)
+function pd_prompt
+    set -l info (pd prompt 2>/dev/null)
     if test -n "$info"
         echo -n "[$info]"
     end

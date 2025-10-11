@@ -3,8 +3,8 @@ use std::io::Write;
 use std::process::{Command, Stdio, exit};
 
 pub fn run_list(format: Option<String>, sort_by: Option<String>, starred: bool) -> Result<()> {
-    let config = parkour::GlobalConfig::load().unwrap_or_default();
-    let list = parkour::load_project_list().context("failed to load project list")?;
+    let config = pado::GlobalConfig::load().unwrap_or_default();
+    let list = pado::load_project_list().context("failed to load project list")?;
 
     let sort_order = sort_by.as_ref().unwrap_or(&config.defaults.sort_order);
     let output_format = format.as_ref().unwrap_or(&config.defaults.output_format);
@@ -17,9 +17,9 @@ pub fn run_list(format: Option<String>, sort_by: Option<String>, starred: bool) 
 
     if projects.is_empty() {
         if starred {
-            eprintln!("No starred projects. Use 'pk star' to star a project.");
+            eprintln!("No starred projects. Use 'pd star' to star a project.");
         } else {
-            eprintln!("No projects tracked yet. Use 'pk add' or navigate to a project with 'pk'.");
+            eprintln!("No projects tracked yet. Use 'pd add' or navigate to a project with 'pd'.");
         }
         return Ok(());
     }
@@ -59,8 +59,8 @@ pub fn run_list(format: Option<String>, sort_by: Option<String>, starred: bool) 
 }
 
 pub fn run_recent(limit: Option<usize>) -> Result<()> {
-    let config = parkour::GlobalConfig::load().unwrap_or_default();
-    let list = parkour::load_project_list().context("failed to load project list")?;
+    let config = pado::GlobalConfig::load().unwrap_or_default();
+    let list = pado::load_project_list().context("failed to load project list")?;
 
     let limit = limit.unwrap_or(config.defaults.recent_limit);
     let projects = list.get_recent_projects(limit);
@@ -76,7 +76,7 @@ pub fn run_recent(limit: Option<usize>) -> Result<()> {
     table.set_header(vec!["Name", "Type", "Path", "Last Accessed"]);
 
     for project in projects {
-        let last_accessed = parkour::format_time_ago(project.last_accessed.timestamp());
+        let last_accessed = pado::format_time_ago(project.last_accessed.timestamp());
         table.add_row(vec![
             &project.name,
             &project.project_type,
@@ -90,7 +90,7 @@ pub fn run_recent(limit: Option<usize>) -> Result<()> {
 }
 
 pub fn run_stats() -> Result<()> {
-    let list = parkour::load_project_list().context("failed to load project list")?;
+    let list = pado::load_project_list().context("failed to load project list")?;
 
     let projects: Vec<_> = list.projects.values().collect();
 
@@ -124,7 +124,7 @@ pub fn run_stats() -> Result<()> {
     println!("\nRecently Accessed:");
     for project in sorted_by_time.iter().take(10) {
         let star = if project.starred { "★ " } else { "  " };
-        let time_ago = parkour::format_time_ago(project.last_accessed.timestamp());
+        let time_ago = pado::format_time_ago(project.last_accessed.timestamp());
         println!("  {}{:<30} {}", star, project.name, time_ago);
     }
 
@@ -146,8 +146,8 @@ pub fn run_stats() -> Result<()> {
 }
 
 pub fn run_switch(recent: bool, starred: bool) -> Result<()> {
-    let config = parkour::GlobalConfig::load().unwrap_or_default();
-    let list = parkour::load_project_list().context("failed to load project list")?;
+    let config = pado::GlobalConfig::load().unwrap_or_default();
+    let list = pado::load_project_list().context("failed to load project list")?;
 
     let projects = if starred {
         list.get_starred_projects()
@@ -159,11 +159,11 @@ pub fn run_switch(recent: bool, starred: bool) -> Result<()> {
 
     if projects.is_empty() {
         if starred {
-            eprintln!("No starred projects. Use 'pk star' to star a project.");
+            eprintln!("No starred projects. Use 'pd star' to star a project.");
         } else if recent {
             eprintln!("No recent projects.");
         } else {
-            eprintln!("No projects tracked yet. Use 'pk add' or navigate to a project with 'pk'.");
+            eprintln!("No projects tracked yet. Use 'pd add' or navigate to a project with 'pd'.");
         }
         exit(1);
     }

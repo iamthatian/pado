@@ -7,7 +7,7 @@ pub mod tracking;
 
 pub use build::BuildSystem;
 pub use config::{GlobalConfig, ProjectConfig, get_global_config_path};
-pub use error::ParkourError;
+pub use error::PadoError;
 pub use project::{
     PROJECT_FILES, ProjectInfo, ProjectType, contains_project_file,
     contains_project_file_with_config, detect_project_type, discover_projects, find_project_root,

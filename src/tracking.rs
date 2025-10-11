@@ -1,4 +1,4 @@
-use crate::error::ParkourError;
+use crate::error::PadoError;
 use crate::project::detect_project_type;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -31,8 +31,8 @@ impl ProjectList {
         }
     }
 
-    pub fn add_project(&mut self, path: PathBuf) -> Result<(), ParkourError> {
-        let path = path.canonicalize().map_err(ParkourError::Io)?;
+    pub fn add_project(&mut self, path: PathBuf) -> Result<(), PadoError> {
+        let path = path.canonicalize().map_err(PadoError::Io)?;
         let name = path
             .file_name()
             .and_then(|n| n.to_str())
@@ -142,18 +142,18 @@ impl ProjectList {
     }
 }
 
-pub fn get_project_list_path() -> Result<PathBuf, ParkourError> {
+pub fn get_project_list_path() -> Result<PathBuf, PadoError> {
     let data_dir = dirs::data_dir().ok_or_else(|| {
-        ParkourError::InvalidPath("could not determine data directory".to_string())
+        PadoError::InvalidPath("could not determine data directory".to_string())
     })?;
 
-    let parkour_dir = data_dir.join("parkour");
-    fs::create_dir_all(&parkour_dir)?;
+    let pado_dir = data_dir.join("pado");
+    fs::create_dir_all(&pado_dir)?;
 
-    Ok(parkour_dir.join("projects.json"))
+    Ok(pado_dir.join("projects.json"))
 }
 
-pub fn load_project_list() -> Result<ProjectList, ParkourError> {
+pub fn load_project_list() -> Result<ProjectList, PadoError> {
     let path = get_project_list_path()?;
 
     if !path.exists() {
@@ -162,13 +162,13 @@ pub fn load_project_list() -> Result<ProjectList, ParkourError> {
 
     let contents = fs::read_to_string(&path)?;
     serde_json::from_str(&contents)
-        .map_err(|e| ParkourError::SerializationError(format!("projects.json: {}", e)))
+        .map_err(|e| PadoError::SerializationError(format!("projects.json: {}", e)))
 }
 
-pub fn save_project_list(list: &ProjectList) -> Result<(), ParkourError> {
+pub fn save_project_list(list: &ProjectList) -> Result<(), PadoError> {
     let path = get_project_list_path()?;
     let contents = serde_json::to_string_pretty(list)
-        .map_err(|e| ParkourError::SerializationError(format!("projects.json: {}", e)))?;
+        .map_err(|e| PadoError::SerializationError(format!("projects.json: {}", e)))?;
 
     fs::write(&path, contents)?;
     Ok(())
