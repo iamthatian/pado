@@ -10,7 +10,13 @@ fn get_current_project_root() -> Option<PathBuf> {
         .and_then(|cwd| pado::find_project_root(&cwd).ok())
 }
 
-pub fn run_list(json: bool, verbose: bool, path: bool, sort_by: Option<String>, starred: bool) -> Result<()> {
+pub fn run_list(
+    json: bool,
+    verbose: bool,
+    path: bool,
+    sort_by: Option<String>,
+    starred: bool,
+) -> Result<()> {
     let config = pado::GlobalConfig::load().unwrap_or_default();
     let list = pado::load_project_list().context("failed to load project list")?;
 
