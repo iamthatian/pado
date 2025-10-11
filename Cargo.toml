@@ -1,5 +1,6 @@
 [package]
 name = "pado"
+license = "MIT"
 description = "A tidal flow through your projects"
 version = "0.1.0"
 authors = ["Ian Park <ian@ianpark.dev>"]
