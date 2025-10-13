@@ -103,7 +103,8 @@ pub fn run_discover(path: PathBuf, depth: usize) -> Result<()> {
         depth
     );
 
-    let projects = libpado::discover_projects(&path, depth).context("failed to discover projects")?;
+    let projects =
+        libpado::discover_projects(&path, depth).context("failed to discover projects")?;
 
     let mut list = pado::load_project_list().context("failed to load project list")?;
 

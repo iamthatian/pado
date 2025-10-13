@@ -98,9 +98,7 @@ pub fn get_git_stats(root: &Path) -> Result<Option<GitStats>> {
     let mut total_commits = 0;
     let mut last_commit_time: Option<i64> = None;
 
-    let head = repo
-        .head()
-        .context("failed to get HEAD")?;
+    let head = repo.head().context("failed to get HEAD")?;
 
     if let Some(head_ref) = head.try_into_referent() {
         let head_id = head_ref.id();

@@ -98,9 +98,7 @@ pub enum Commands {
     },
 
     #[command(display_order = 35)]
-    Add {
-        path: Option<PathBuf>,
-    },
+    Add { path: Option<PathBuf> },
 
     #[command(display_order = 36)]
     Remove {
@@ -123,9 +121,7 @@ pub enum Commands {
     },
 
     #[command(display_order = 40)]
-    Exec {
-        command: String,
-    },
+    Exec { command: String },
 
     #[command(display_order = 41)]
     ExecAll {
