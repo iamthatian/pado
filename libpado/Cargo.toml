@@ -1,0 +1,21 @@
+[package]
+name = "libpado"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "A minimal library for project root detection and build system discovery"
+homepage.workspace = true
+repository.workspace = true
+keywords = ["cli", "project", "detection"]
+categories = ["command-line-utilities", "development-tools"]
+
+[dependencies]
+phf.workspace = true
+thiserror.workspace = true
+ignore.workspace = true
+walkdir.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+criterion.workspace = true

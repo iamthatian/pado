@@ -1854,6 +1854,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9fbbcab51052fe104eb5e5d351cf728d30a5be1fe14d9be8a3b097481fb97de"
 
 [[package]]
+name = "libpado"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "ignore",
+ "phf 0.13.1",
+ "tempfile",
+ "thiserror 2.0.17",
+ "walkdir",
+]
+
+[[package]]
 name = "libredox"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2000,18 +2012,24 @@ dependencies = [
  "chrono",
  "clap 4.5.48",
  "comfy-table",
- "criterion",
  "dirs 5.0.1",
- "gix",
- "ignore",
- "phf 0.13.1",
+ "libpado",
  "serde",
  "serde_json",
  "tempfile",
- "thiserror 2.0.17",
- "tokei",
  "toml 0.8.23",
- "walkdir",
+]
+
+[[package]]
+name = "padofetch"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap 4.5.48",
+ "gix",
+ "libpado",
+ "tokei",
 ]
 
 [[package]]

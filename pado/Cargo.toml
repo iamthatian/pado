@@ -1,0 +1,29 @@
+[package]
+name = "pado"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "A tidal flow through your projects"
+homepage.workspace = true
+repository.workspace = true
+keywords = ["cli", "shell", "tool", "utility", "projectile"]
+categories = ["command-line-utilities"]
+
+[[bin]]
+name = "pd"
+path = "src/main.rs"
+
+[dependencies]
+libpado = { version = "0.1.0", path = "../libpado" }
+anyhow.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+comfy-table.workspace = true
+dirs.workspace = true
+chrono.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

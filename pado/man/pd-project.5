@@ -1,0 +1,127 @@
+.TH PD-PROJECT 5 "2025" "pd 0.1.0" "File Formats"
+.SH NAME
+pd-project \- project-specific configuration for pd
+.SH SYNOPSIS
+.B .pd.toml
+(in project root directory)
+.SH DESCRIPTION
+The
+.B .pd.toml
+file allows projects to define custom commands for build, test, run, and other operations. This file is optional and resides in the project root directory.
+.SH FORMAT
+.SS [commands]
+Custom commands that override or supplement auto-detected build systems.
+.PP
+.RS
+.nf
+[commands]
+build = "cargo build --release"
+test = "cargo test --all-features"
+run = "cargo watch -x run"
+dev = "cargo watch -x 'run --bin server'"
+deploy = "./scripts/deploy.sh"
+lint = "cargo clippy -- -D warnings"
+fmt = "cargo fmt --all"
+docs = "cargo doc --open"
+.fi
+.RE
+.SH USAGE
+Commands are executed using:
+.TP
+.B pd build
+Runs the "build" command if defined, otherwise auto-detects
+.TP
+.B pd test
+Runs the "test" command if defined, otherwise auto-detects
+.TP
+.B pd run
+Runs the "run" command if defined, otherwise auto-detects
+.TP
+.B pd exec COMMAND
+Runs any custom command (e.g., pd exec dev, pd exec deploy)
+.SH EXAMPLES
+.SS Rust Project
+.RS
+.nf
+[commands]
+build = "cargo build --release"
+test = "cargo test --all-features"
+run = "cargo run --bin myapp"
+dev = "cargo watch -x run"
+bench = "cargo bench"
+.fi
+.RE
+.SS Node.js Project
+.RS
+.nf
+[commands]
+build = "npm run build"
+test = "npm test -- --coverage"
+run = "npm start"
+dev = "npm run dev"
+lint = "npm run lint"
+deploy = "npm run deploy"
+.fi
+.RE
+.SS Python Project
+.RS
+.nf
+[commands]
+build = "poetry build"
+test = "pytest --cov"
+run = "python -m myapp"
+dev = "python -m myapp --debug"
+lint = "ruff check ."
+fmt = "black ."
+.fi
+.RE
+.SS Monorepo
+.RS
+.nf
+[commands]
+build = "./scripts/build-all.sh"
+test = "./scripts/test-all.sh"
+run = "./scripts/run-dev.sh"
+deploy = "./scripts/deploy.sh"
+server = "cd server && npm start"
+client = "cd client && npm start"
+.fi
+.RE
+.SH AUTO-DETECTION
+If
+.B .pd.toml
+is not present or doesn't define a command,
+.B pd
+auto-detects the build system:
+.RS
+.B Cargo
+(Rust) → cargo build, cargo test, cargo run
+.br
+.B npm/yarn/pnpm/bun
+(JavaScript) → npm run build, npm test, npm start
+.br
+.B Maven
+(Java) → mvn package, mvn test, mvn exec:java
+.br
+.B Gradle
+(Java) → gradle build, gradle test, gradle run
+.br
+.B Poetry
+(Python) → poetry build, poetry run pytest, poetry run python
+.br
+.B Go
+→ go build, go test, go run
+.br
+.B Make
+→ make, make test, make run
+.br
+.B CMake
+→ cmake --build, ctest, ./build/app
+.RE
+.SH SEE ALSO
+.BR pd (1),
+.BR pd-config (5)
+.SH BUGS
+Report bugs at: https://github.com/yourusername/pd/issues
+.SH AUTHOR
+Written by Ian Park

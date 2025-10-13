@@ -1,0 +1,138 @@
+.TH PD-CONFIG 5 "2025" "pd 0.1.0" "File Formats"
+.SH NAME
+pd-config \- configuration file for pd
+.SH SYNOPSIS
+.B ~/.config/pd/config.toml
+(Linux/BSD)
+.br
+.B ~/Library/Application Support/pd/config.toml
+(macOS)
+.br
+.B %APPDATA%\\pd\\config.toml
+(Windows)
+.SH DESCRIPTION
+The
+.B pd
+configuration file uses TOML format and is entirely optional. All settings have sensible defaults.
+.SH FORMAT
+.SS [markers]
+Additional project marker files beyond built-in ones.
+.PP
+.RS
+.nf
+[markers]
+additional = [".projectile", ".project", "PROJECT"]
+.fi
+.RE
+.SS [defaults]
+Default preferences for commands.
+.PP
+.RS
+.nf
+[defaults]
+sort_order = "time"        # time, access, or name
+output_format = "table"    # table, paths, or json
+recent_limit = 10          # default for pd recent
+.fi
+.RE
+.SS [indexing]
+File indexing configuration.
+.PP
+.RS
+.nf
+[indexing]
+method = "native"                      # native, git, or fd
+ignore_patterns = ["*.tmp", "*.swp"]   # additional ignores
+.fi
+.RE
+.SS [prompt]
+Shell prompt customization.
+.PP
+.RS
+.nf
+[prompt]
+format = "{name}:{type}"   # {name}, {type}, {path}
+show_full_path = false     # show full path vs name
+.fi
+.RE
+.PP
+Prompt format examples:
+.RS
+"{name}:{type}" → "pd:rust"
+.br
+"[{name}]" → "[pd]"
+.br
+"󱘗 {name}" → "󱘗 pd"
+.br
+"{type}:{name}" → "rust:pd"
+.RE
+.SS [behavior]
+Behavioral settings.
+.PP
+.RS
+.nf
+[behavior]
+auto_star_on_add = false              # auto-star new projects
+auto_add_on_cd = true                 # auto-add on pd access
+require_confirmation_on_clear = true  # confirm pd clear
+.fi
+.RE
+.SH EXAMPLES
+Minimal configuration:
+.PP
+.RS
+.nf
+[defaults]
+sort_order = "access"
+
+[prompt]
+format = "󱘗 {name}"
+.fi
+.RE
+.PP
+Full configuration:
+.PP
+.RS
+.nf
+[markers]
+additional = [".projectile"]
+
+[defaults]
+sort_order = "access"
+output_format = "table"
+recent_limit = 20
+
+[indexing]
+method = "git"
+ignore_patterns = ["*.tmp", ".DS_Store"]
+
+[prompt]
+format = "[{type}] {name}"
+show_full_path = false
+
+[behavior]
+auto_star_on_add = true
+auto_add_on_cd = true
+require_confirmation_on_clear = true
+.fi
+.RE
+.SH MANAGEMENT
+.TP
+.B pd config
+Show config location and status
+.TP
+.B pd config --path
+Show full path to config file
+.TP
+.B pd config --show
+Display current configuration
+.TP
+.B pd config --edit
+Edit in $EDITOR (creates with defaults if missing)
+.SH SEE ALSO
+.BR pd (1),
+.BR pd-project (5)
+.SH BUGS
+Report bugs at: https://github.com/yourusername/pd/issues
+.SH AUTHOR
+Written by Ian Park

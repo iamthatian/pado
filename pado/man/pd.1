@@ -1,0 +1,340 @@
+.TH PD 1 "2025" "pd 0.1.0" "User Commands"
+.SH NAME
+pd \- find project root and perform project-aware operations
+.SH SYNOPSIS
+.B pd
+[\fIOPTIONS\fR] [\fICOMMAND\fR]
+.SH DESCRIPTION
+.B pd
+is a minimalist command-line tool that finds project root directories and provides project-aware operations. Like Emacs Projectile, it maintains a list of known projects for quick access and switching.
+.PP
+When run without arguments,
+.B pd
+prints the project root directory of the current working directory.
+.SH OPTIONS
+.TP
+.B \-h, \-\-help
+Print help information
+.TP
+.B \-V, \-\-version
+Print version information
+.SH COMMANDS
+.SS PROJECT NAVIGATION
+.TP
+.B tree
+Run tree command from project root
+.TP
+.B init
+Output shell integration script (auto-detects shell from $SHELL)
+.SS FILE OPERATIONS
+.TP
+.B files [\-p|\-\-pattern PATTERN]
+List all project files (respects .gitignore)
+.TP
+.B find PATTERN [\-\-print]
+Find files matching pattern (integrates with fzf if available)
+.TP
+.B search QUERY
+Search in project files (uses ripgrep if available)
+.SS PROJECT INFORMATION
+.TP
+.B info
+Show detailed project information (languages, git stats, etc.)
+.TP
+.B type
+Detect and print project type
+.TP
+.B health
+Check project health (git, dependencies, README, LICENSE, etc.)
+.TP
+.B deps
+Show project dependencies
+.TP
+.B outdated
+Check for outdated dependencies
+.SS PROJECT MANAGEMENT
+.TP
+.B list [\-\-json] [\-v|\-\-verbose] [\-\-path] [\-\-sort\-by FIELD] [\-\-starred]
+List all known projects. Sort by: time (default), access, or name
+.TP
+.B switch [\-\-recent] [\-\-starred]
+Interactive project switcher (uses fzf)
+.TP
+.B recent [\-l|\-\-limit N]
+Show recent projects (default: 10)
+.TP
+.B stats
+Show project statistics (access frequency, starred, type distribution)
+.TP
+.B star [PATH] [\-\-unstar]
+Star/unstar a project for quick access
+.TP
+.B add [PATH]
+Add project to known projects list
+.TP
+.B remove [PATH] [\-\-all]
+Remove project(s) from list. Interactive if no path provided
+.TP
+.B clear
+Clear all known projects
+.TP
+.B cleanup
+Remove missing/non-existent projects from list
+.TP
+.B discover PATH [\-d|\-\-depth N]
+Discover projects recursively in directory (default depth: 3)
+.SS BUILD/TEST/RUN
+.TP
+.B build
+Build the project (auto-detects build system or uses .pd.toml)
+.TP
+.B test
+Test the project (auto-detects test framework or uses .pd.toml)
+.TP
+.B run
+Run the project (auto-detects run command or uses .pd.toml)
+.TP
+.B compile
+Alias for build
+.TP
+.B exec COMMAND
+Execute a custom command from .pd.toml
+.TP
+.B exec\-all [\-\-tag TYPE] COMMAND...
+Execute command in all tracked projects
+.SS SHELL INTEGRATION
+.TP
+.B prompt
+Get prompt string (project:type) for shell integration
+.SS CONFIGURATION
+.TP
+.B config [\-\-path] [\-\-edit] [\-\-show]
+Show or edit configuration
+.SH PROJECT DETECTION
+.B pd
+detects project roots by searching for marker files in the current directory and its ancestors:
+.PP
+.RS
+\fB.git\fR, \fB.hg\fR, \fB.svn\fR (version control)
+.br
+\fBCargo.toml\fR (Rust)
+.br
+\fBpackage.json\fR (JavaScript/Node)
+.br
+\fBgo.mod\fR (Go)
+.br
+\fBpom.xml\fR, \fBbuild.gradle\fR (Java)
+.br
+\fBGemfile\fR (Ruby)
+.br
+\fBcomposer.json\fR (PHP)
+.br
+\fBsetup.py\fR, \fBpyproject.toml\fR (Python)
+.br
+\fBCMakeLists.txt\fR, \fBMakefile\fR (C/C++)
+.br
+\fB.projectile\fR, \fB.project\fR, \fBPROJECT\fR (generic markers)
+.RE
+.SH GLOBAL CONFIGURATION
+Global configuration is stored in:
+.RS
+.B Linux/BSD:
+$XDG_CONFIG_HOME/pd/config.toml (default: ~/.config/pd/config.toml)
+.br
+.B macOS:
+~/Library/Application Support/pd/config.toml
+.br
+.B Windows:
+%APPDATA%\\pd\\config.toml
+.RE
+.PP
+Configuration is entirely optional. Available settings:
+.PP
+.B [markers]
+.RS
+additional = [".projectile", ".project"]  # Custom project markers
+.RE
+.PP
+.B [defaults]
+.RS
+sort_order = "time"           # Default: time, access, or name
+.br
+output_format = "table"       # Default: table, paths, or json
+.br
+recent_limit = 10             # Default limit for pd recent
+.RE
+.PP
+.B [indexing]
+.RS
+method = "native"             # Indexing: native, git, or fd
+.br
+ignore_patterns = ["*.tmp"]   # Additional ignore patterns
+.RE
+.PP
+.B [prompt]
+.RS
+format = "{name}:{type}"      # Prompt format: {name}, {type}, {path}
+.br
+show_full_path = false        # Show full path vs project name
+.RE
+.PP
+.B [behavior]
+.RS
+auto_star_on_add = false              # Auto-star new projects
+.br
+auto_add_on_cd = true                 # Auto-add when running pd
+.br
+require_confirmation_on_clear = true  # Confirm before clearing all
+.RE
+.SH PROJECT CONFIGURATION
+Projects can define custom commands in
+.B .pd.toml
+in the project root:
+.PP
+.RS
+.nf
+[commands]
+build = "cargo build --release"
+test = "cargo test --all-features"
+run = "cargo watch -x run"
+dev = "cargo watch -x 'run --bin server'"
+deploy = "./scripts/deploy.sh"
+.fi
+.RE
+.SH SHELL INTEGRATION
+Add to your shell's RC file:
+.PP
+.B Bash/Zsh:
+.RS
+eval "$(pd init)"
+.RE
+.PP
+.B Fish:
+.RS
+pd init | source
+.RE
+.PP
+This provides helper functions:
+.RS
+.B pdroot
+\- Jump to project root
+.br
+.B pdfind
+\- Find files with fzf
+.br
+.B pdsearch
+\- Search with ripgrep
+.br
+.B pdedit
+\- Interactive file edit
+.br
+.B pdtree
+\- Show project tree
+.br
+.B pdswitch
+\- Interactive project switcher
+.br
+.B pdrecent
+\- Recent projects switcher
+.br
+.B pdstarred
+\- Starred projects switcher
+.br
+.B pdbuild, pdtest, pdrun
+\- Build/test/run shortcuts
+.br
+.B pdstats
+\- Project statistics
+.br
+.B pdstar
+\- Star current project
+.br
+.B pdrec
+\- Show recent projects
+.br
+.B pd_prompt
+\- For PS1 integration
+.RE
+.SH PROJECT TRACKING
+Projects are automatically tracked when accessed. The project list is stored in:
+.RS
+.B Linux/BSD:
+$XDG_DATA_HOME/pd/projects.json (default: ~/.local/share/pd/projects.json)
+.br
+.B macOS:
+~/Library/Application Support/pd/projects.json
+.br
+.B Windows:
+%APPDATA%\\pd\\projects.json
+.RE
+.SH BUILD SYSTEM DETECTION
+.B pd
+auto-detects build systems and provides appropriate commands:
+.RS
+Cargo (Rust), npm/yarn/pnpm/bun (JavaScript), Maven/Gradle (Java),
+.br
+Poetry/pip (Python), Go modules, Make, CMake
+.RE
+.SH EXIT STATUS
+.TP
+.B 0
+Success
+.TP
+.B 1
+Project root not found
+.TP
+.B 2
+Other errors
+.SH EXAMPLES
+.TP
+.B pd
+Print project root of current directory
+.TP
+.B pd info
+Show detailed information about current project
+.TP
+.B pd list --sort-by access --starred
+List starred projects sorted by access frequency
+.TP
+.B pd switch --recent
+Interactive switcher for recent projects
+.TP
+.B pd discover ~/projects -d 5
+Find all projects under ~/projects (max depth 5)
+.TP
+.B pd build
+Build current project using auto-detected build system
+.TP
+.B pd exec-all --tag rust "cargo update"
+Run cargo update in all Rust projects
+.TP
+.B eval "$(pd init)"
+Set up shell integration
+.SH FILES
+.TP
+.B ~/.config/pd/config.toml
+Global configuration (Linux/BSD)
+.TP
+.B ~/Library/Application Support/pd/config.toml
+Global configuration (macOS)
+.TP
+.B ~/.local/share/pd/projects.json
+Project list database (Linux/BSD)
+.TP
+.B ~/Library/Application Support/pd/projects.json
+Project list database (macOS)
+.TP
+.B .pd.toml
+Project-specific configuration (in project root)
+.SH SEE ALSO
+.BR tree (1),
+.BR fzf (1),
+.BR rg (1),
+.BR fd (1),
+.BR git (1)
+.SH BUGS
+Report bugs at: https://github.com/yourusername/pd/issues
+.SH AUTHOR
+Written by Ian Park
+.SH COPYRIGHT
+Copyright \(co 2025. License: MIT or Apache-2.0

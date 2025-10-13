@@ -1,0 +1,25 @@
+[package]
+name = "padofetch"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Project information and statistics tool"
+homepage.workspace = true
+repository.workspace = true
+keywords = ["cli", "stats", "info", "project"]
+categories = ["command-line-utilities"]
+
+[[bin]]
+name = "padofetch"
+path = "src/main.rs"
+
+[dependencies]
+libpado = { version = "0.1.0", path = "../libpado" }
+anyhow.workspace = true
+clap.workspace = true
+chrono.workspace = true
+
+# padofetch-specific heavy dependencies
+tokei = "12.1"
+gix = { version = "0.68", default-features = false, features = ["blocking-network-client"] }
