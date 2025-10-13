@@ -102,66 +102,10 @@ Healthy:
 padofetch deps
 ```
 
-Shows project dependencies based on detected project type:
-- **Rust**: Parses `Cargo.toml`
-- **Node**: Suggests using `npm list` or `yarn list`
-- **Python**: Shows `requirements.txt` if available
-
-### Outdated Check
-
-```bash
-padofetch outdated
-```
-
-Checks for outdated dependencies using build system tools:
-- **Rust**: `cargo outdated`
-- **Node**: `npm outdated`, `yarn outdated`, etc.
-- **Python**: `pip list --outdated`
-- **Go**: `go list -u -m all`
-
-## Shell Integration
-
-If you use `pd` (pado), shell functions are automatically available:
-
-```bash
-# From anywhere in a project
-pdinfo      # Alias for padofetch info
-pdhealth    # Alias for padofetch health
-```
-
-## Project Type Support
-
-Detects and analyzes:
-- Rust (Cargo)
-- Node.js (npm, yarn, pnpm, bun)
-- Python (pip, Poetry)
-- Go
-- Java (Maven, Gradle)
-- Ruby (Bundler)
-- PHP (Composer)
-- C/C++ (Make, CMake)
-- Docker projects
-
-## Output
-
-All output is designed to be:
-- **Human-readable**: Pretty formatting with colors and bars
-- **Informative**: Shows the most relevant information first
-- **Fast**: Minimal overhead, uses efficient libraries (tokei, gitoxide)
-
 ## Dependencies
 
 - **tokei**: Fast language statistics
 - **gitoxide**: Efficient Git repository analysis
-
-## Why "padofetch"?
-
-A portmanteau of "pado" (tide) and "fetch" - fetch information about your project like waves bringing messages from the sea.
-
-## See Also
-
-- [pado](https://crates.io/crates/pado) - Project management CLI
-- [libpado](https://crates.io/crates/libpado) - Project detection library
 
 ## License
 

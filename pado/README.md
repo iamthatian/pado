@@ -1,6 +1,6 @@
 # pado (pd)
 
-A tidal flow through your projects - minimalist project management CLI inspired by Emacs Projectile.
+A tidal flow through your projects.
 
 Like the tide flows naturally between shores, `pd` helps you flow naturally between your projects.
 
@@ -187,19 +187,3 @@ Output includes:
 - Most accessed projects
 - Project type distribution
 - Recently accessed projects
-
-## Why "pado"?
-
-Portuguese for "tide" - representing the natural ebb and flow between projects.
-
-## Companion Tools
-
-- **padofetch**: Show detailed project information and statistics
-  ```bash
-  padofetch info    # Language stats, git info
-  padofetch health  # Health check
-  ```
-
-## License
-
-MIT
