@@ -1,7 +1,7 @@
 use crate::error::PadoError;
 use ignore::WalkBuilder;
 use phf::{Set, phf_set};
-use std::path::{Path, PathBuf};
+use std::{collections::HashSet, io, path::{Path, PathBuf}};
 
 pub static PROJECT_FILES: Set<&'static str> = phf_set! {
     // VCS
@@ -330,16 +330,20 @@ pub struct ProjectInfo {
     pub subprojects: Vec<PathBuf>,
 }
 
-pub fn contains_project_file(dir: &Path) -> std::io::Result<bool> {
+fn dir_filenames(dir: &Path) -> io::Result<HashSet<String>> {
+    let mut names = HashSet::new();
     for entry in dir.read_dir()? {
         let entry = entry?;
         if let Some(name) = entry.file_name().to_str() {
-            if PROJECT_FILES.contains(name) {
-                return Ok(true);
-            }
+            names.insert(name.to_string());
         }
     }
-    Ok(false)
+    Ok(names)
+}
+
+pub fn contains_project_file(dir: &Path) -> io::Result<bool> {
+    let names = dir_filenames(dir)?;
+    Ok(names.iter().any(|n| PROJECT_FILES.contains(n.as_str())))
 }
 
 pub fn find_project_root(start: &Path) -> Result<PathBuf, PadoError> {
