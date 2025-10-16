@@ -1,4 +1,5 @@
 use crate::error::PadoError;
+use globset::Glob;
 use ignore::WalkBuilder;
 use phf::{Set, phf_set};
 use std::{collections::HashSet, io, path::{Path, PathBuf}};
@@ -372,17 +373,21 @@ fn has_any_dir(root: &Path, dirs: &[&str]) -> bool {
 }
 
 fn has_pattern(dir: &Path, pattern: &str) -> bool {
+    let glob = match Glob::new(pattern) {
+        Ok(g) => g,
+        Err(_) => return false,
+    };
+    let matcher = glob.compile_matcher();
+
     std::fs::read_dir(dir)
         .ok()
-        .and_then(|entries| {
-            for e in entries.flatten() {
-                if let Some(name) = e.file_name().to_str() {
-                    if glob_match(pattern, name) {
-                        return Some(true);
-                    }
-                }
-            }
-            None
+        .map(|entries| {
+            entries.flatten().any(|e| {
+                e.file_name()
+                    .to_str()
+                    .map(|name| matcher.is_match(name))
+                    .unwrap_or(false)
+            })
         })
         .unwrap_or(false)
 }
