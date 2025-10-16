@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use thiserror::Error;
+use globset::Error as GlobError;
 
 #[derive(Error, Debug)]
 pub enum PadoError {
@@ -26,4 +27,7 @@ pub enum PadoError {
 
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
+
+    #[error("glob pattern error: {0}")]
+    Glob(#[from] GlobError),
 }

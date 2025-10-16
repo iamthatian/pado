@@ -1,5 +1,5 @@
 use crate::error::PadoError;
-use globset::Glob;
+use globset::{Glob, GlobSetBuilder};
 use ignore::WalkBuilder;
 use phf::{Set, phf_set};
 use std::{collections::HashSet, io, path::{Path, PathBuf}};
@@ -728,6 +728,14 @@ pub fn detect_project_type(root: &Path) -> ProjectType {
 pub fn list_project_files(root: &Path, pattern: Option<&str>) -> Result<Vec<PathBuf>, PadoError> {
     let mut files = Vec::new();
 
+    let matcher = if let Some(pat) = pattern {
+        let mut builder = GlobSetBuilder::new();
+        builder.add(Glob::new(pat)?);
+        Some(builder.build()?)
+    } else {
+        None
+    };
+
     for result in WalkBuilder::new(root)
         .hidden(false)
         .ignore(true)
@@ -735,18 +743,14 @@ pub fn list_project_files(root: &Path, pattern: Option<&str>) -> Result<Vec<Path
         .build()
     {
         let entry = result.map_err(|e| {
-            std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("walking project files: {}", e),
-            )
+            io::Error::new(io::ErrorKind::Other, format!("walking project files: {}", e))
         })?;
 
         if entry.file_type().map(|ft| ft.is_file()).unwrap_or(false) {
             let path = entry.path().to_path_buf();
-
-            if let Some(pat) = pattern {
+            if let Some(matcher) = &matcher {
                 if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                    if glob_match(pat, name) {
+                    if matcher.is_match(name) {
                         files.push(path);
                     }
                 }
