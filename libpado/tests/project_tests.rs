@@ -390,16 +390,3 @@ fn test_list_project_files_respects_gitignore() {
     assert!(!file_names.contains(&"ignored.txt"));
     assert!(!file_names.contains(&"debug.txt"));
 }
-
-#[test]
-fn test_glob_match() {
-    assert!(glob_match("*.rs", "main.rs"));
-    assert!(glob_match("*.rs", "lib.rs"));
-    assert!(!glob_match("*.rs", "main.txt"));
-
-    assert!(glob_match("test_*", "test_foo"));
-    assert!(glob_match("main*", "main.rs"));
-
-    assert!(glob_match("*_test", "foo_test"));
-    assert!(glob_match("*main", "main"));
-}

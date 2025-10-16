@@ -763,23 +763,6 @@ pub fn list_project_files(root: &Path, pattern: Option<&str>) -> Result<Vec<Path
     Ok(files)
 }
 
-pub fn glob_match(pattern: &str, text: &str) -> bool {
-    if pattern.starts_with('*') && pattern.len() > 1 {
-        text.ends_with(&pattern[1..])
-    } else if pattern.ends_with('*') && pattern.len() > 1 {
-        text.starts_with(&pattern[..pattern.len() - 1])
-    } else if pattern.contains('*') {
-        let parts: Vec<&str> = pattern.split('*').collect();
-        if parts.len() == 2 {
-            text.starts_with(parts[0]) && text.ends_with(parts[1])
-        } else {
-            pattern == text
-        }
-    } else {
-        pattern == text
-    }
-}
-
 pub fn get_project_info(root: &Path) -> Result<ProjectInfo, PadoError> {
     let project_types = detect_project_types(root);
     let monorepo = detect_monorepo(root);
